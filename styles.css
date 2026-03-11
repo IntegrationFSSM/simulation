@@ -9,7 +9,7 @@
   --primary: #1e90ff;
   --primary-dark: #1070cc;
   --primary-light: #e8f3ff;
-  --primary-glass: rgba(30, 144, 255, 0.12);
+  --primary-glass: rgba(30, 143, 255, 0.329);
   --accent: #6c63ff;
   --success: #10b981;
   --warning: #f59e0b;
@@ -18,7 +18,7 @@
 
   /* Sidebar */
   --sidebar-w: 280px;
-  --sidebar-bg: linear-gradient(160deg, #0f1e3d 0%, #1a3260 60%, #1e4480 100%);
+  --sidebar-bg: #1070cc;
   --sidebar-border: rgba(255,255,255,0.07);
 
   /* Surface */
