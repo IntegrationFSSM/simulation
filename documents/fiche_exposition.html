@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Fiche d'Exposition Écrite — Suivi d'Habituation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+  :root { --blue:#1e90ff; --navy:#0f1e3d; --accent:#6c63ff; --light:#f0f4fb; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Inter',sans-serif; background:#fff; color:#1a2340; font-size:13px; }
+  .print-bar { background:var(--navy); color:white; padding:12px 30px; display:flex; align-items:center; justify-content:space-between; }
+  .print-btn { background:var(--blue); color:white; border:none; border-radius:8px; padding:8px 20px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+  .doc { max-width:900px; margin:24px auto; padding:0 20px 60px; }
+  .doc-header { background:linear-gradient(135deg,var(--accent),#8b5cf6); border-radius:14px; padding:28px 32px; color:white; margin-bottom:28px; }
+  .doc-header h1 { font-size:1.3rem; font-weight:800; margin-bottom:6px; }
+  .patient-row { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px; margin-bottom:22px; }
+  .field { border-bottom:1.5px solid #cbd5e1; padding-bottom:6px; }
+  .field label { font-size:0.7rem; font-weight:700; text-transform:uppercase; color:#64748b; display:block; margin-bottom:4px; }
+  .instructions { background:var(--light); border-left:4px solid var(--accent); border-radius:0 10px 10px 0; padding:14px 18px; margin-bottom:22px; font-size:0.83rem; line-height:1.7; }
+  section { margin-bottom:22px; }
+  section h3 { font-size:0.85rem; font-weight:800; color:var(--navy); margin-bottom:10px; padding:8px 14px; background:var(--light); border-radius:8px; }
+  textarea { width:100%; border:1.5px solid #e2e8f4; border-radius:8px; padding:10px; font-family:'Inter',sans-serif; font-size:0.84rem; resize:vertical; }
+  .scenario-area { min-height:160px; border-color:var(--accent); border-width:2px; line-height:1.8; }
+  .tracking-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin:10px 0; }
+  .tracking-card { border:1.5px solid #e2e8f4; border-radius:10px; padding:12px 8px; text-align:center; }
+  .tracking-card .day-label { font-size:0.68rem; font-weight:700; text-transform:uppercase; color:#64748b; margin-bottom:10px; }
+  .time-row { display:flex; flex-direction:column; gap:6px; }
+  .time-field { display:flex; align-items:center; justify-content:space-between; gap:4px; }
+  .time-field label { font-size:0.65rem; color:#64748b; }
+  .time-field input { width:44px; border:1px solid #e2e8f4; border-radius:5px; padding:2px 4px; text-align:center; font-family:'Inter',sans-serif; font-size:0.78rem; font-weight:700; }
+  .rule-box { background:#ede9fe; border-radius:10px; padding:14px 18px; margin-bottom:20px; font-size:0.83rem; }
+  .rule-box h4 { color:#4c1d95; font-weight:800; margin-bottom:8px; }
+  .rule-box li { color:#5b21b6; margin-bottom:4px; padding-left:4px; }
+  @media print {
+    .print-bar { display:none !important; }
+    .doc { margin:0; padding:20px; }
+    .tracking-grid { page-break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="print-bar">
+  <div style="font-weight:800;">Ory<sup style="font-size:0.6em">+</sup> | Document Clinique</div>
+  <button class="print-btn" onclick="window.print()">🖨️ Imprimer / Enregistrer PDF</button>
+</div>
+<div class="doc">
+  <div class="doc-header">
+    <h1>🎯 Fiche d'Exposition Écrite — Suivi d'Habituation</h1>
+    <p>Traitement de l'évitement cognitif | Séances 11, 12 et 13</p>
+  </div>
+  <div class="patient-row">
+    <div class="field"><label>Nom du patient</label>&nbsp;</div>
+    <div class="field"><label>Date de début</label>&nbsp;</div>
+    <div class="field"><label>Thème du scénario</label>&nbsp;</div>
+    <div class="field"><label>Séance</label>&nbsp;</div>
+  </div>
+
+  <div class="rule-box">
+    <h4>📋 Règles de l'exposition</h4>
+    <ul>
+      <li>Durée minimale : <strong>30 minutes</strong> par session</li>
+      <li>Fréquence : <strong>5 jours par semaine</strong> minimum</li>
+      <li>Rester dans le scénario jusqu'à baisse naturelle de l'anxiété</li>
+      <li>NE PAS interrompre l'exposition avant la baisse</li>
+      <li>Aucune rassurance verbale pendant l'exposition</li>
+    </ul>
+  </div>
+
+  <section>
+    <h3>✍️ Mon Scénario d'Exposition (à rédiger au présent, 1ère personne)</h3>
+    <p style="font-size:0.8rem;color:#64748b;margin-bottom:8px;"><em>Décrivez la situation redoutée en détail — les événements, vos émotions, les sensations physiques, le pire qui pourrait arriver...</em></p>
+    <textarea class="scenario-area" placeholder="Je suis en train de... Je ressens... Mon cœur bat... Ma plus grande crainte est que... Et si cela se produisait, alors... Je me vois..."></textarea>
+  </section>
+
+  <section>
+    <h3>📊 Grille de Suivi — Niveau d'Anxiété par Session (0 = calme — 10 = panique)</h3>
+    <div class="tracking-grid">
+      ${['J1','J2','J3','J4','J5','J6'].map(day => `
+      <div class="tracking-card">
+        <div class="day-label">${day}</div>
+        <div class="time-row">
+          ${['T0','T5','T10','T15','T20','T25','T30'].map(t => `
+          <div class="time-field"><label>${t}</label><input type="number" min="0" max="10" placeholder="−"></div>`).join('')}
+        </div>
+      </div>`).join('')}
+    </div>
+  </section>
+
+  <section>
+    <h3>💬 Observations post-exposition</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div><label style="font-size:0.75rem;font-weight:700;color:#64748b;display:block;margin-bottom:5px;">À quel moment l'anxiété a-t-elle baissé ?</label>
+        <textarea style="min-height:70px;" placeholder="Vers T__ min, quand j'ai..."></textarea></div>
+      <div><label style="font-size:0.75rem;font-weight:700;color:#64748b;display:block;margin-bottom:5px;">Ce que j'ai appris de cette session</label>
+        <textarea style="min-height:70px;" placeholder="J'ai réalisé que..."></textarea></div>
+    </div>
+  </section>
+
+  <p style="font-size:0.75rem;color:#94a3b8;margin-top:30px;text-align:center;">Document Ory+ — Protocole TCC TAG — Usage clinique confidentiel</p>
+</div>
+</body>
+</html>
