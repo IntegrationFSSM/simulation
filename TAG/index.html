@@ -50,6 +50,9 @@
             <span class="active-part" id="breadcrumb-current">Tableau de Bord</span>
         </div>
         <div class="header-right">
+            <button class="btn-sm-icon" style="color: var(--danger); margin-right: 8px;" onclick="if(confirm('Êtes-vous sûr de vouloir tout effacer et recommencer à zéro ?')) { localStorage.clear(); window.location.reload(); }" title="Réinitialiser toutes les données (Vider le cache)">
+                <i class="fas fa-trash-alt"></i>
+            </button>
             <button class="btn-sm-icon" onclick="window.print()" title="Imprimer / Exporter PDF">
                 <i class="fas fa-print"></i>
             </button>
