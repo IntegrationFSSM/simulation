@@ -16,26 +16,34 @@ const app = {
     },
 
     async init() {
-        if (window.currentTroubleId && window.PROTOCOLS_DB) {
-            window.PROTOCOL = window.PROTOCOLS_DB[window.currentTroubleId];
+        if (window.currentTroubleId) {
+            try {
+                const res = await fetch(`/api/protocols/${window.currentTroubleId}/`);
+                if (res.ok) {
+                    window.PROTOCOL = await res.json();
+                }
+            } catch (e) { console.error('Erreur API protocole:', e); }
         }
 
-        // Fetch patients from LocalAPI equivalent
+        // Fetch patients from Django database
         try {
-            const data = await LocalAPI.getPatients();
-            if (data && data.patients && data.patients.length > 0) {
-                // Keep the first hardcoded patient's rich data (consultation, objectifs) as defaults
-                const defaults = simulationData.patients[0] || {};
-                simulationData.patients = data.patients.map(p => ({
-                    ...defaults,
-                    ...p,
-                    // Preserve arrays/objects from API, don't inherit from defaults
-                    completedSessions: p.completedSessions || [],
-                    sessionScores: p.sessionScores || {},
-                    notes: p.notes || {},
-                    score_initial: p.score_initial || defaults.score_initial || {},
-                    intermediateSessions: p.intermediateSessions || [],
-                }));
+            const res = await fetch('/api/patients/');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.patients && data.patients.length > 0) {
+                    // Keep the first hardcoded patient's rich data (consultation, objectifs) as defaults
+                    const defaults = simulationData.patients[0] || {};
+                    simulationData.patients = data.patients.map(p => ({
+                        ...defaults,
+                        ...p,
+                        // Preserve arrays/objects from API, don't inherit from defaults
+                        completedSessions: p.completedSessions || [],
+                        sessionScores: p.sessionScores || {},
+                        notes: p.notes || {},
+                        score_initial: p.score_initial || defaults.score_initial || {},
+                        intermediateSessions: [],
+                    }));
+                }
             }
         } catch (e) { console.error('Erreur chargement patients:', e); }
 
@@ -50,8 +58,9 @@ const app = {
 
     async _loadPatientProgress(p) {
         try {
-            const progress = await LocalAPI.getPatientProgress(p.id);
-            if (progress) {
+            const res = await fetch(`/api/patients/${p.id}/progress/`);
+            if (res.ok) {
+                const progress = await res.json();
                 p.completedSessions = progress.completed_sessions || [];
                 p.currentSession = progress.current_session || 1;
                 p.intermediateSessions = progress.intermediate_sessions || [];
@@ -66,33 +75,14 @@ const app = {
         const parentNo = isIntermediate ? Math.floor(sessionNo) : sessionNo;
         const exercises = getExercisesForSession(parentNo);
         
+        // Temporarily set context to check the target session's storage
         const prevContext = window.activeSessionNo;
-        
-        // Find all session scopes to check (the parent and all its intermediates)
-        let scopesToCheck = [sessionNo];
-        if (!isIntermediate) {
-            const p = simulationData.patients.find(x => x.id === patientId) || this.state.selectedPatient;
-            if (p && p.intermediateSessions) {
-                const intermediates = p.intermediateSessions.filter(i => i.parent_session === sessionNo);
-                scopesToCheck = scopesToCheck.concat(intermediates.map(i => i.session_number));
-            }
-        }
+        window.activeSessionNo = sessionNo;
         
         let hasIncomplete = false;
-        
         for (let ex of exercises) {
-            let isCompletedAnywhere = false;
-            
-            for (let scope of scopesToCheck) {
-                window.activeSessionNo = scope;
-                const status = ExerciseStorage.getStatus(patientId, ex.id);
-                if (status === 'completed') {
-                    isCompletedAnywhere = true;
-                    break;
-                }
-            }
-            
-            if (!isCompletedAnywhere) {
+            const status = ExerciseStorage.getStatus(patientId, ex.id);
+            if (status !== 'completed') {
                 hasIncomplete = true;
                 break;
             }
@@ -496,18 +486,31 @@ const app = {
         const p = this.state.selectedPatient;
         if (!p) return;
         try {
-            const data = await LocalAPI.addIntermediateSession(p.id, afterSessionNo);
-            if (!p.intermediateSessions) p.intermediateSessions = [];
-            p.intermediateSessions.push({
-                session_number: data.session_number,
-                parent_session: afterSessionNo,
-                completed: false
+            const res = await fetch('/api/sessions/add-intermediate/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: p.id,
+                    after_session: afterSessionNo
+                })
             });
-            this.showToast(`S\u00e9ance interm\u00e9diaire ${data.session_number} ajout\u00e9e apr\u00e8s la s\u00e9ance ${afterSessionNo}.`, 'success');
-            this.renderDossier(document.getElementById('app-view'));
+            if (res.ok) {
+                const data = await res.json();
+                if (!p.intermediateSessions) p.intermediateSessions = [];
+                p.intermediateSessions.push({
+                    session_number: data.session_number,
+                    parent_session: data.parent_session,
+                    completed: false
+                });
+                this.showToast(`Séance intermédiaire ${data.session_number} ajoutée après la séance ${afterSessionNo}.`, 'success');
+                this.renderDossier(document.getElementById('app-view'));
+            } else {
+                const err = await res.json();
+                this.showToast(`Erreur: ${err.error}`, 'danger');
+            }
         } catch (e) {
-            console.error('Erreur ajout interm\u00e9diaire:', e);
-            this.showToast('Erreur de cr\u00e9ation.', 'danger');
+            console.error('Erreur ajout intermédiaire:', e);
+            this.showToast('Erreur réseau.', 'danger');
         }
     },
 
@@ -1226,10 +1229,18 @@ const app = {
             }
         }
 
-        // Persist to LocalAPI
+        // Persist to Django database
         try {
             const notes = document.getElementById('clinical-notes')?.value || '';
-            await LocalAPI.completeSession(p.id, s.no, notes);
+            await fetch('/api/sessions/complete/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: p.id,
+                    session_number: s.no,
+                    notes: notes
+                })
+            });
         } catch (e) { console.error('Erreur sauvegarde session:', e); }
 
         this.showToast(`Séance ${s.no} clôturée avec succès.`, 'success');
