@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ory+ | Simulateur TCC \u2014 Anxi\u00e9t\u00e9 G\u00e9n\u00e9ralis\u00e9e</title>
+    <meta name="description" content="Plateforme clinique de simulation du protocole TCC pour le Trouble d'Anxi\u00e9t\u00e9 G\u00e9n\u00e9ralis\u00e9e (TAG) \u2014 Dugas & Robichaud \u2014 Oryplus ERP">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+
+<!-- ========================== SIDEBAR ========================== -->
+<div class="sidebar-container">
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="navbar-brand d-flex align-items-center">
+                <button class="logo-toggle" id="logoToggle" type="button" style="padding:0;background:none;border:none;display:flex;align-items:center;cursor:pointer;">
+                    <img src="static/img/OryLogofig.png" alt="Logo" class="sidebar-logo" style="height:40px;object-fit:contain;margin-right:-3px;" onerror="this.style.display='none'">
+                </button>
+                <a href="#" class="brand-link" style="text-decoration:none;display:flex;align-items:center;">
+                    <img src="static/img/OryLogoBrand.png" alt="Symbol" class="brand-text-img" style="height:20px;object-fit:contain;" onerror="this.style.display='none'">
+                </a>
+            </div>
+        </div>
+
+        <div class="menu-items">
+            <div style="padding: 15px 20px; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                Protocoles Cliniques
+            </div>
+            <a href="index.html" class="menu-item active">
+                <i class="fas fa-brain"></i>
+                <span class="menu-text">TAG (Dugas & Robichaud)</span>
+            </a>
+        </div>
+    </nav>
+</div>
+
+<!-- ========================== MAIN ========================== -->
+<div class="main-content">
+    <header class="top-header">
+        <div class="breadcrumb-nav">
+            <span class="part">Espace Psychologue</span>
+            <span class="sep">/</span>
+            <span class="active-part" id="breadcrumb-current">Tableau de Bord</span>
+        </div>
+        <div class="header-right">
+            <button class="btn-sm-icon" onclick="window.print()" title="Imprimer / Exporter PDF">
+                <i class="fas fa-print"></i>
+            </button>
+            <div class="user-chip">
+                <div class="avatar">PSY</div>
+                <span class="uname">Clinique Ory+</span>
+            </div>
+        </div>
+    </header>
+
+    <div id="app-view"></div>
+
+    <footer class="main-footer">
+        &copy; <span id="footerYear"></span> Ory<sup>+</sup> — ERP Médical | CLV Tech &nbsp;
+    </footer>
+</div>
+
+<!-- ========================== MODAL CONTAINER ========================== -->
+<div id="modal-root"></div>
+
+<!-- ========================== TOAST CONTAINER ========================== -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<!-- ========================== TEMPLATES ========================== -->
+
+<!-- DASHBOARD -->
+<template id="tpl-dashboard">
+<div>
+    <div class="row g-3 mb-4" id="stats-row"></div>
+    <div class="section-title"><i class="fas fa-users text-primary-c"></i> Dossiers Patients Actifs</div>
+    <div class="row g-3" id="patients-grid"></div>
+</div>
+</template>
+
+<!-- ESPACE PSYCHOLOGUE -->
+<template id="tpl-psy">
+<div>
+    <div class="section-title">
+        <i class="fas fa-user-md text-primary-c"></i> Espace Psychologue
+    </div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="panel-card mb-3">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-users me-2 text-primary-c"></i>Patients suivis</h6>
+                </div>
+                <div class="panel-card-body" id="psy-patient-list"></div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="panel-card mb-3">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-notes-medical me-2 text-primary-c"></i>Profil clinique</h6>
+                </div>
+                <div class="panel-card-body" id="psy-patient-detail">
+                    <span style="font-size:0.82rem;color:var(--text-muted);">Sélectionnez un patient pour consulter son profil clinique.</span>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="panel-card mb-3">
+                        <div class="panel-card-header">
+                            <h6><i class="fas fa-chart-bar me-2 text-primary-c"></i>Bilan psychométrique</h6>
+                        </div>
+                        <div class="panel-card-body" id="psy-scores-area">
+                            <span style="font-size:0.82rem;color:var(--text-muted);">—</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="panel-card mb-3">
+                        <div class="panel-card-header">
+                            <h6><i class="fas fa-calendar-check me-2 text-primary-c"></i>Suivi thérapeutique</h6>
+                        </div>
+                        <div class="panel-card-body" id="psy-session-list">
+                            <span style="font-size:0.82rem;color:var(--text-muted);">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-card mb-3" id="psy-consultation-card" style="display:none;">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-user-doctor me-2" style="color:#10b981;"></i>Consultation médicale</h6>
+                </div>
+                <div class="panel-card-body" id="psy-consultation-area"></div>
+            </div>
+            <div class="panel-card mb-3" id="psy-objectifs-card" style="display:none;">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-bullseye me-2" style="color:#8b5cf6;"></i>Objectifs thérapeutiques</h6>
+                </div>
+                <div class="panel-card-body" id="psy-objectifs-area"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</template>
+
+<!-- DOSSIER PATIENT -->
+<template id="tpl-dossier">
+<div>
+    <div class="dossier-header mb-4" id="dossier-header-content"></div>
+
+    <!-- Consultation médicale -->
+    <div class="panel-card mb-3" id="dossier-consultation-card" style="display:none;">
+        <div class="panel-card-header">
+            <h6><i class="fas fa-user-doctor me-2" style="color:#10b981;"></i>Consultation médicale d'orientation</h6>
+        </div>
+        <div class="panel-card-body" id="dossier-consultation-area"></div>
+    </div>
+
+    <!-- Objectifs thérapeutiques -->
+    <div class="panel-card mb-3" id="dossier-objectifs-card" style="display:none;">
+        <div class="panel-card-header">
+            <h6><i class="fas fa-bullseye me-2" style="color:#8b5cf6;"></i>Objectifs thérapeutiques</h6>
+        </div>
+        <div class="panel-card-body" id="dossier-objectifs-area"></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-5">
+            <div class="panel-card mb-3">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-list-check me-2 text-primary-c"></i>Progression des séances</h6>
+                    <span id="dossier-progress-badge" class="badge" style="background:var(--primary);color:white;font-size:0.7rem;padding:4px 10px;border-radius:20px;"></span>
+                </div>
+                <div class="panel-card-body" style="max-height:500px;overflow-y:auto;">
+                    <div class="session-timeline" id="dossier-session-timeline"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="panel-card mb-3">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-chart-line me-2 text-primary-c"></i>Évolution GAD-7</h6>
+                </div>
+                <div class="panel-card-body">
+                    <canvas id="patient-chart" height="180"></canvas>
+                </div>
+            </div>
+            <div class="panel-card mb-3">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-circle-info me-2 text-primary-c"></i>Bilan psychométrique initial</h6>
+                </div>
+                <div class="panel-card-body">
+                    <div id="dossier-scores-initial"></div>
+                </div>
+            </div>
+            <div class="panel-card">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-clipboard-list me-2 text-primary-c"></i>Exercices TAG</h6>
+                    <button class="btn-ghost" style="font-size:0.72rem;padding:3px 10px;" onclick="app.showPanel('exercises')">
+                        <i class="fas fa-external-link-alt"></i> Tout voir
+                    </button>
+                </div>
+                <div class="panel-card-body" id="dossier-exercises-tab"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</template>
+
+<!-- EXERCICES TAG -->
+<template id="tpl-exercises">
+<div>
+    <div class="section-title"><i class="fas fa-clipboard-list text-primary-c"></i> Exercices — Guide de pratique TAG</div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="panel-card" style="position:sticky;top:80px;">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-layer-group me-2 text-primary-c"></i>Catégories</h6>
+                </div>
+                <div class="panel-card-body p-0" id="exercise-category-list"></div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div id="exercise-list-area"></div>
+        </div>
+    </div>
+</div>
+</template>
+
+<!-- SÉANCE -->
+<template id="tpl-session">
+<div class="session-layout">
+    <div class="session-sidebar-panel">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h6><i class="fas fa-calendar-check me-2 text-primary-c"></i>Séance en cours</h6>
+                <span id="session-badge" class="badge" style="background:var(--primary);color:white;font-size:0.7rem;padding:4px 10px;border-radius:20px;"></span>
+            </div>
+            <div class="panel-card-body" id="session-info-area"></div>
+        </div>
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h6><i class="fas fa-clipboard-list me-2" style="color:var(--accent)"></i>Exercices disponibles</h6>
+            </div>
+            <div class="panel-card-body" id="session-exercises-area"></div>
+        </div>
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h6><i class="fas fa-stethoscope me-2 text-primary-c"></i>Échelles cliniques</h6>
+            </div>
+            <div class="panel-card-body" id="session-scales-area"></div>
+        </div>
+    </div>
+    <div>
+        <div class="panel-card mb-3">
+            <div class="panel-card-body" style="padding:1.5rem;">
+                <h4 id="session-main-title" class="fw-800 mb-1" style="color:var(--primary);font-size:1.3rem;"></h4>
+                <p id="session-patient-name" style="font-size:0.82rem;color:var(--text-muted);margin:0;"></p>
+            </div>
+        </div>
+        <div id="session-exercise-render-area"></div>
+        <div class="panel-card mt-3">
+            <div class="panel-card-header">
+                <h6><i class="fas fa-pen-to-square me-2" style="color:var(--accent)"></i>Notes cliniques</h6>
+                <button class="btn-sm-icon" onclick="app.saveNotes()" title="Sauvegarder"><i class="fas fa-save"></i></button>
+            </div>
+            <div class="panel-card-body">
+                <textarea class="notes-textarea" id="clinical-notes" placeholder="Observations cliniques, attitude du patient, éléments marquants de la séance…"></textarea>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+            <button class="btn-ghost" onclick="app.showPanel('dossier')">
+                <i class="fas fa-arrow-left"></i> Retour au dossier
+            </button>
+            <button class="btn-success-custom" id="btn-complete-session" onclick="app.completeCurrentSession()">
+                <i class="fas fa-check-circle"></i> Clôturer la séance
+            </button>
+        </div>
+    </div>
+</div>
+</template>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="static/data.js"></script>
+<script src="static/protocols.js"></script>
+<script src="static/storage.js"></script>
+<script src="static/exercises_config.js"></script>
+<script src="static/exercises.js"></script>
+<script>
+    // Hardcoded for static version
+    window.currentTroubleId = "DSM5_GAD";
+</script>
+<script src="static/app.js"></script>
+<script>
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.sub-menu > a.menu-item').forEach(function (trigger) {
+            trigger.addEventListener('click', function (e) {
+                e.preventDefault();
+                const parent = this.parentElement;
+                const isOpen = parent.classList.contains('open');
+                document.querySelectorAll('.sub-menu').forEach(function (sm) {
+                    if (sm !== parent) sm.classList.remove('open');
+                });
+                parent.classList.toggle('open', !isOpen);
+            });
+        });
+    });
+</script>
+</body>
+</html>
