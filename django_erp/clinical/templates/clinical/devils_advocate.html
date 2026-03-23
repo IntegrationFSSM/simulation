@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ory+ | Exercice de l'Avocat du Diable</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #1e90ff; --bg: #f8fafc; --accent: #8b5cf6; }
+        body { background: var(--bg); font-family: 'Inter', system-ui, sans-serif; padding: 2rem; }
+        .page-card { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); padding: 2rem; margin-bottom: 2rem; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.88rem; margin-bottom: 1.5rem; }
+        .back-btn:hover { text-decoration: underline; }
+        h2 { font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
+        .page-subtitle { font-size: 0.88rem; color: #64748b; margin-bottom: 2rem; }
+        .form-label { font-weight: 600; font-size: 0.85rem; color: #334155; }
+        .btn-submit { background: var(--accent); color: white; border: none; padding: 10px 28px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; }
+        .btn-submit:hover { background: #7c3aed; color: white; }
+        .sheet-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; transition: box-shadow 0.2s; }
+        .sheet-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+        .sheet-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 4px; }
+        .sheet-text { font-size: 0.85rem; color: #334155; line-height: 1.5; }
+        .belief-highlight { background: #f5f3ff; border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 0 8px 8px 0; margin-bottom: 12px; }
+        .field-group { background: #f8fafc; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+        .field-group-label { font-size: 0.78rem; font-weight: 700; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    </style>
+</head>
+<body>
+
+<a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Retour</a>
+<h2><i class="fas fa-balance-scale me-2" style="color:var(--accent);"></i>Exercice de l'Avocat du Diable</h2>
+<p class="page-subtitle">Session 3 — Remettez en question vos croyances au sujet de l'utilité de s'inquiéter.</p>
+
+<div class="row g-4">
+    <!-- Form -->
+    <div class="col-lg-6">
+        <div class="page-card">
+            <h5 class="fw-bold mb-3"><i class="fas fa-gavel me-2" style="color:var(--accent);"></i>Nouvelle fiche</h5>
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="field-group">
+                    <div class="field-group-label"><i class="fas fa-bullseye"></i> La croyance ciblée</div>
+                    {{ form.belief }}
+                    {% if form.belief.errors %}<div class="text-danger small mt-1">{{ form.belief.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="field-group">
+                    <div class="field-group-label"><i class="fas fa-thumbs-up"></i> 1. Preuves POUR cette croyance</div>
+                    {{ form.evidence_for }}
+                    {% if form.evidence_for.errors %}<div class="text-danger small mt-1">{{ form.evidence_for.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="field-group">
+                    <div class="field-group-label"><i class="fas fa-thumbs-down"></i> 2. Arguments CONTRE cette croyance</div>
+                    {{ form.evidence_against }}
+                    {% if form.evidence_against.errors %}<div class="text-danger small mt-1">{{ form.evidence_against.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="field-group">
+                    <div class="field-group-label"><i class="fas fa-plus-circle"></i> 3. Avantages de cette croyance</div>
+                    {{ form.advantages_of_belief }}
+                    {% if form.advantages_of_belief.errors %}<div class="text-danger small mt-1">{{ form.advantages_of_belief.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="field-group">
+                    <div class="field-group-label"><i class="fas fa-minus-circle"></i> 4. Désavantages de cette croyance</div>
+                    {{ form.disadvantages_of_belief }}
+                    {% if form.disadvantages_of_belief.errors %}<div class="text-danger small mt-1">{{ form.disadvantages_of_belief.errors.0 }}</div>{% endif %}
+                </div>
+
+                <button type="submit" class="btn-submit w-100 mt-2">
+                    <i class="fas fa-save me-1"></i> Enregistrer la fiche
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Previous sheets -->
+    <div class="col-lg-6">
+        <div class="page-card">
+            <h5 class="fw-bold mb-3"><i class="fas fa-folder-open me-2" style="color:var(--accent);"></i>Fiches précédentes</h5>
+            {% if sheets %}
+                {% for sheet in sheets %}
+                <div class="sheet-card">
+                    <div class="belief-highlight">
+                        <div class="sheet-label">Croyance ciblée</div>
+                        <div class="sheet-text fw-bold">« {{ sheet.belief }} »</div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="sheet-label"><i class="fas fa-thumbs-up me-1" style="color:#10b981;"></i>Preuves pour</div>
+                            <div class="sheet-text">{{ sheet.evidence_for|truncatewords:30 }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="sheet-label"><i class="fas fa-thumbs-down me-1" style="color:#ef4444;"></i>Arguments contre</div>
+                            <div class="sheet-text">{{ sheet.evidence_against|truncatewords:30 }}</div>
+                        </div>
+                    </div>
+                    <div class="mt-2" style="font-size:0.72rem;color:#94a3b8;">
+                        <i class="fas fa-clock me-1"></i>{{ sheet.created_at|date:"d M Y à H:i" }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-4" style="color:#94a3b8;">
+                    <i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                    Aucune fiche enregistrée. Commencez par remplir le formulaire.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

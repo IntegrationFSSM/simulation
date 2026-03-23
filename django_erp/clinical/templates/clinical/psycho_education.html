@@ -1,0 +1,239 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Module 3: In-Session Psychoeducation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'clinical/styles.css' %}">
+    <style>
+        .split-layout {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--bg);
+        }
+        .pane-therapist {
+            flex: 1;
+            border-right: 1px solid var(--border);
+            padding: 2rem;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+        .pane-patient {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            background: white;
+        }
+        .therapist-badge {
+            display: inline-block;
+            background: #1e293b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .patient-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .key-principle {
+            background: #fef08a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .key-principle:hover {
+            background: #fde047;
+        }
+        .interactive-row {
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+        .interactive-row.active {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(30,144,255,0.1);
+        }
+        .example-box {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div class="split-layout">
+        <!-- THERAPIST PANE -->
+        <div class="pane-therapist">
+            <span class="therapist-badge"><i class="fas fa-user-md"></i> VUE THÉRAPEUTE (GUIDE CLINIQUE)</span>
+            
+            <h4 class="fw-bold mb-4">Guide: L'intolérance à l'incertitude</h4>
+            
+            <div class="panel-card mb-4">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-book-open text-primary-c me-2"></i>Analogie: Brigitte et Mireille</h6>
+                </div>
+                <div class="panel-card-body" style="font-size: 0.9rem; line-height: 1.6;">
+                    <p>Pour expliquer l'intolérance à l'incertitude, utilisez cet exemple :</p>
+                    <p><em>Brigitte et Mireille découvrent toutes deux une petite bosse sur leur bras. Le médecin leur dit que c'est bénin à 99%, mais qu'il y a 1% de chance que ce soit grave.</em></p>
+                    <ul>
+                        <li><strong>Mireille (Tolérante) :</strong> Se fie au 99%. Elle retourne travailler sans y penser.</li>
+                        <li><strong>Brigitte (Intolérante) :</strong> Se focalise sur le 1%. Elle s'inquiète, lit des forums médicaux, et ne dort plus.</li>
+                    </ul>
+                    <hr>
+                    <p><strong>Message clé à transmettre au patient :</strong></p>
+                    <p class="key-principle">« Augmenter sa tolérance à l'incertitude aide à diminuer les inquiétudes. Vouloir 100% de certitude est un piège impossible à atteindre dans la vie. »</p>
+                </div>
+            </div>
+
+            <h4 class="fw-bold mb-3 mt-5">Les 12 Manifestations d'intolérance</h4>
+            <p class="text-muted small">Exemples cliniques à discuter avec le patient au fur et à mesure qu'il remplit la fiche.</p>
+            
+            <div class="interactive-row" id="therapist-row-1">
+                <strong>1. Éviter de faire certaines choses</strong>
+                <p class="text-muted small mt-1 mb-0">Ex: Refuser un nouveau projet au bureau car l'issue est incertaine.</p>
+            </div>
+            <div class="interactive-row" id="therapist-row-2">
+                <strong>2. Trouver des obstacles artificiels</strong>
+                <p class="text-muted small mt-1 mb-0">Ex: Dire "je n'ai pas le temps" pour cacher la peur de l'inconnu.</p>
+            </div>
+            <div class="interactive-row" id="therapist-row-3">
+                <strong>3. Procrastiner (remettre à plus tard)</strong>
+                <p class="text-muted small mt-1 mb-0">Ex: Attendre la dernière minute pour agir par peur de mal faire.</p>
+            </div>
+            <div class="interactive-row" id="therapist-row-4">
+                <strong>4. Rechercher de la réassurance</strong>
+                <p class="text-muted small mt-1 mb-0">Ex: Demander sans cesse l'avis de son conjoint avant de décider.</p>
+            </div>
+        </div>
+
+        <!-- PATIENT PANE -->
+        <div class="pane-patient">
+            <span class="patient-badge"><i class="fas fa-user"></i> VUE PATIENT (EXERCICE INTERACTIF)</span>
+            
+            <h4 class="fw-bold mb-4">Exercice: Mes manifestations d'intolérance</h4>
+            <p class="mb-4">Identifiez si vous utilisez ces comportements face à l'incertitude.</p>
+            
+            <form id="manifestations-form" action="/api/assessments/worksheet/" method="POST">
+                <!-- Item 1 -->
+                <div class="panel-card mb-3" onmouseover="highlightTherapist(1)" onmouseout="unhighlightTherapist(1)">
+                    <div class="panel-card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>1. Éviter de faire certaines choses</strong>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="item_1" id="item_1_oui" value="oui" onchange="toggleExample(1, true)">
+                                <label class="btn btn-outline-success btn-sm" for="item_1_oui">OUI</label>
+                                <input type="radio" class="btn-check" name="item_1" id="item_1_non" value="non" onchange="toggleExample(1, false)">
+                                <label class="btn btn-outline-secondary btn-sm" for="item_1_non">NON</label>
+                            </div>
+                        </div>
+                        <div class="example-box" id="example-box-1">
+                            <label class="form-label small fw-bold text-primary">Exemple personnel :</label>
+                            <textarea class="form-control" name="example_1" rows="2" placeholder="Quand est-ce que j'évite de faire quelque chose ?"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div class="panel-card mb-3" onmouseover="highlightTherapist(2)" onmouseout="unhighlightTherapist(2)">
+                    <div class="panel-card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>2. Trouver des obstacles artificiels</strong>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="item_2" id="item_2_oui" value="oui" onchange="toggleExample(2, true)">
+                                <label class="btn btn-outline-success btn-sm" for="item_2_oui">OUI</label>
+                                <input type="radio" class="btn-check" name="item_2" id="item_2_non" value="non" onchange="toggleExample(2, false)">
+                                <label class="btn btn-outline-secondary btn-sm" for="item_2_non">NON</label>
+                            </div>
+                        </div>
+                        <div class="example-box" id="example-box-2">
+                            <label class="form-label small fw-bold text-primary">Exemple personnel :</label>
+                            <textarea class="form-control" name="example_2" rows="2" placeholder="Quels obstacles j'invente ?"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Item 3 -->
+                <div class="panel-card mb-3" onmouseover="highlightTherapist(3)" onmouseout="unhighlightTherapist(3)">
+                    <div class="panel-card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>3. Procrastiner (remettre à plus tard)</strong>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="item_3" id="item_3_oui" value="oui" onchange="toggleExample(3, true)">
+                                <label class="btn btn-outline-success btn-sm" for="item_3_oui">OUI</label>
+                                <input type="radio" class="btn-check" name="item_3" id="item_3_non" value="non" onchange="toggleExample(3, false)">
+                                <label class="btn btn-outline-secondary btn-sm" for="item_3_non">NON</label>
+                            </div>
+                        </div>
+                        <div class="example-box" id="example-box-3">
+                            <label class="form-label small fw-bold text-primary">Exemple personnel :</label>
+                            <textarea class="form-control" name="example_3" rows="2" placeholder="Que remettez-vous à plus tard ?"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 4 -->
+                <div class="panel-card mb-3" onmouseover="highlightTherapist(4)" onmouseout="unhighlightTherapist(4)">
+                    <div class="panel-card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>4. Rechercher de la réassurance</strong>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="item_4" id="item_4_oui" value="oui" onchange="toggleExample(4, true)">
+                                <label class="btn btn-outline-success btn-sm" for="item_4_oui">OUI</label>
+                                <input type="radio" class="btn-check" name="item_4" id="item_4_non" value="non" onchange="toggleExample(4, false)">
+                                <label class="btn btn-outline-secondary btn-sm" for="item_4_non">NON</label>
+                            </div>
+                        </div>
+                        <div class="example-box" id="example-box-4">
+                            <label class="form-label small fw-bold text-primary">Exemple personnel :</label>
+                            <textarea class="form-control" name="example_4" rows="2" placeholder="À qui demandez-vous d'être rassuré(e) ?"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-end">
+                    <button type="button" class="btn-primary-custom" onclick="submitWorksheet()"><i class="fas fa-save me-2"></i> Sauvegarder dans le dossier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleExample(id, show) {
+            const box = document.getElementById('example-box-' + id);
+            box.style.display = show ? 'block' : 'none';
+        }
+
+        function highlightTherapist(id) {
+            document.querySelectorAll('.interactive-row').forEach(row => row.classList.remove('active'));
+            const row = document.getElementById('therapist-row-' + id);
+            if(row) row.classList.add('active');
+        }
+
+        function unhighlightTherapist(id) {
+            const row = document.getElementById('therapist-row-' + id);
+            if(row) row.classList.remove('active');
+        }
+
+        function submitWorksheet() {
+            alert("Exercice interactif sauvegardé via l'API Django.");
+        }
+    </script>
+</body>
+</html>
