@@ -16,34 +16,26 @@ const app = {
     },
 
     async init() {
-        if (window.currentTroubleId) {
-            try {
-                const res = await fetch(`/api/protocols/${window.currentTroubleId}/`);
-                if (res.ok) {
-                    window.PROTOCOL = await res.json();
-                }
-            } catch (e) { console.error('Erreur API protocole:', e); }
+        if (window.currentTroubleId && window.PROTOCOLS_DB) {
+            window.PROTOCOL = window.PROTOCOLS_DB[window.currentTroubleId];
         }
 
-        // Fetch patients from Django database
+        // Fetch patients from LocalAPI equivalent
         try {
-            const res = await fetch('/api/patients/');
-            if (res.ok) {
-                const data = await res.json();
-                if (data.patients && data.patients.length > 0) {
-                    // Keep the first hardcoded patient's rich data (consultation, objectifs) as defaults
-                    const defaults = simulationData.patients[0] || {};
-                    simulationData.patients = data.patients.map(p => ({
-                        ...defaults,
-                        ...p,
-                        // Preserve arrays/objects from API, don't inherit from defaults
-                        completedSessions: p.completedSessions || [],
-                        sessionScores: p.sessionScores || {},
-                        notes: p.notes || {},
-                        score_initial: p.score_initial || defaults.score_initial || {},
-                        intermediateSessions: [],
-                    }));
-                }
+            const data = await LocalAPI.getPatients();
+            if (data && data.patients && data.patients.length > 0) {
+                // Keep the first hardcoded patient's rich data (consultation, objectifs) as defaults
+                const defaults = simulationData.patients[0] || {};
+                simulationData.patients = data.patients.map(p => ({
+                    ...defaults,
+                    ...p,
+                    // Preserve arrays/objects from API, don't inherit from defaults
+                    completedSessions: p.completedSessions || [],
+                    sessionScores: p.sessionScores || {},
+                    notes: p.notes || {},
+                    score_initial: p.score_initial || defaults.score_initial || {},
+                    intermediateSessions: p.intermediateSessions || [],
+                }));
             }
         } catch (e) { console.error('Erreur chargement patients:', e); }
 
@@ -58,9 +50,8 @@ const app = {
 
     async _loadPatientProgress(p) {
         try {
-            const res = await fetch(`/api/patients/${p.id}/progress/`);
-            if (res.ok) {
-                const progress = await res.json();
+            const progress = await LocalAPI.getPatientProgress(p.id);
+            if (progress) {
                 p.completedSessions = progress.completed_sessions || [];
                 p.currentSession = progress.current_session || 1;
                 p.intermediateSessions = progress.intermediate_sessions || [];
@@ -70,27 +61,60 @@ const app = {
         } catch (e) { console.error('Erreur chargement progression:', e); }
     },
 
+    isExerciseCompletedAnywhere(patientId, exId, parentNo) {
+        // The user wants an exercise to be hidden in intermediate sessions if it was completed
+        // in ANY previous session across the entire therapy, not just the parent session.
+        const allKeys = Object.keys(ExerciseStorage._loadAll());
+        // Keys are formatted as: p{patientId}_s{sessionNo}_{exId}
+        const prefixMatch = `p${patientId}_`;
+        const suffixMatch = `_${exId}`;
+        
+        for (let key of allKeys) {
+            // Check if key belongs to this patient and this exercise
+            if (key.startsWith(prefixMatch) && key.includes(suffixMatch)) {
+                // If it doesn't have a trailing underscore, it's the main completion key (not an entry row)
+                if (!key.substring(key.indexOf(suffixMatch) + suffixMatch.length).includes('_')) {
+                    // It was completed in SOME session
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    },
+
     hasIncompleteExercises(patientId, sessionNo) {
+        // For the warning banner on the parent session, we only care if the exercises
+        // of THIS parent session and its direct intermediates are undone.
         const isIntermediate = sessionNo !== Math.floor(sessionNo);
         const parentNo = isIntermediate ? Math.floor(sessionNo) : sessionNo;
         const exercises = getExercisesForSession(parentNo);
         
-        // Temporarily set context to check the target session's storage
         const prevContext = window.activeSessionNo;
-        window.activeSessionNo = sessionNo;
+        let scopesToCheck = [parentNo];
+        const p = simulationData.patients.find(x => x.id === patientId) || this.state.selectedPatient;
+        if (p && p.intermediateSessions) {
+            const intermediates = p.intermediateSessions.filter(i => i.parent_session === parentNo);
+            scopesToCheck = scopesToCheck.concat(intermediates.map(i => i.session_number));
+        }
         
-        let hasIncomplete = false;
         for (let ex of exercises) {
-            const status = ExerciseStorage.getStatus(patientId, ex.id);
-            if (status !== 'completed') {
-                hasIncomplete = true;
-                break;
+            let doneInScope = false;
+            for (let scope of scopesToCheck) {
+                window.activeSessionNo = scope;
+                if (ExerciseStorage.getStatus(patientId, ex.id) === 'completed') {
+                    doneInScope = true;
+                    break;
+                }
+            }
+            if (!doneInScope) {
+                window.activeSessionNo = prevContext;
+                return true; // Found an exercise not completed in this session's scope
             }
         }
         
-        // Restore context
         window.activeSessionNo = prevContext;
-        return hasIncomplete;
+        return false;
     },
 
     /* =================== NAVIGATION =================== */
@@ -486,31 +510,18 @@ const app = {
         const p = this.state.selectedPatient;
         if (!p) return;
         try {
-            const res = await fetch('/api/sessions/add-intermediate/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    patient_id: p.id,
-                    after_session: afterSessionNo
-                })
+            const data = await LocalAPI.addIntermediateSession(p.id, afterSessionNo);
+            if (!p.intermediateSessions) p.intermediateSessions = [];
+            p.intermediateSessions.push({
+                session_number: data.session_number,
+                parent_session: afterSessionNo,
+                completed: false
             });
-            if (res.ok) {
-                const data = await res.json();
-                if (!p.intermediateSessions) p.intermediateSessions = [];
-                p.intermediateSessions.push({
-                    session_number: data.session_number,
-                    parent_session: data.parent_session,
-                    completed: false
-                });
-                this.showToast(`Séance intermédiaire ${data.session_number} ajoutée après la séance ${afterSessionNo}.`, 'success');
-                this.renderDossier(document.getElementById('app-view'));
-            } else {
-                const err = await res.json();
-                this.showToast(`Erreur: ${err.error}`, 'danger');
-            }
+            this.showToast(`S\u00e9ance interm\u00e9diaire ${data.session_number} ajout\u00e9e apr\u00e8s la s\u00e9ance ${afterSessionNo}.`, 'success');
+            this.renderDossier(document.getElementById('app-view'));
         } catch (e) {
-            console.error('Erreur ajout intermédiaire:', e);
-            this.showToast('Erreur réseau.', 'danger');
+            console.error('Erreur ajout interm\u00e9diaire:', e);
+            this.showToast('Erreur de cr\u00e9ation.', 'danger');
         }
     },
 
@@ -648,11 +659,10 @@ const app = {
         let sessionExercises = getExercisesForSession(parentNo);
         const pid = this.state.selectedPatient?.id || 1;
 
-        // For intermediate sessions, only show exercises that are NOT completed
+        // For intermediate sessions, filter to only undone exercises across all scopes globally
         if (isIntermediate) {
             sessionExercises = sessionExercises.filter(ex => {
-                const status = ExerciseStorage.getStatus(pid, ex.id);
-                return status !== 'completed';
+                return !this.isExerciseCompletedAnywhere(pid, ex.id, parentNo);
             });
         }
 
@@ -800,11 +810,10 @@ const app = {
         let sessionExercises = getExercisesForSession(parentNo);
         const pid = this.state.selectedPatient?.id || 1;
 
-        // For intermediate sessions, filter to only undone exercises
+        // For intermediate sessions, filter to only undone exercises across all scopes globally
         if (isIntermediate) {
             sessionExercises = sessionExercises.filter(ex => {
-                const status = ExerciseStorage.getStatus(pid, ex.id);
-                return status !== 'completed';
+                return !this.isExerciseCompletedAnywhere(pid, ex.id, parentNo);
             });
         }
 
@@ -1229,18 +1238,10 @@ const app = {
             }
         }
 
-        // Persist to Django database
+        // Persist to LocalAPI
         try {
             const notes = document.getElementById('clinical-notes')?.value || '';
-            await fetch('/api/sessions/complete/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    patient_id: p.id,
-                    session_number: s.no,
-                    notes: notes
-                })
-            });
+            await LocalAPI.completeSession(p.id, s.no, notes);
         } catch (e) { console.error('Erreur sauvegarde session:', e); }
 
         this.showToast(`Séance ${s.no} clôturée avec succès.`, 'success');
