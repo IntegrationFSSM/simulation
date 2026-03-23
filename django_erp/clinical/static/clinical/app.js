@@ -25,26 +25,72 @@ const app = {
             } catch (e) { console.error('Erreur API protocole:', e); }
         }
 
-        // Load saved progress from database
-        const p = this.state.selectedPatient || simulationData.patients[0];
-        if (p && p.id) {
-            try {
-                const res = await fetch(`/api/patients/${p.id}/progress/`);
-                if (res.ok) {
-                    const progress = await res.json();
-                    p.completedSessions = progress.completed_sessions || [];
-                    p.currentSession = progress.current_session || 1;
-                    if (progress.session_scores) {
-                        p.sessionScores = progress.session_scores;
-                    }
-                    if (progress.notes) {
-                        p.notes = progress.notes;
-                    }
+        // Fetch patients from Django database
+        try {
+            const res = await fetch('/api/patients/');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.patients && data.patients.length > 0) {
+                    // Keep the first hardcoded patient's rich data (consultation, objectifs) as defaults
+                    const defaults = simulationData.patients[0] || {};
+                    simulationData.patients = data.patients.map(p => ({
+                        ...defaults,
+                        ...p,
+                        // Preserve arrays/objects from API, don't inherit from defaults
+                        completedSessions: p.completedSessions || [],
+                        sessionScores: p.sessionScores || {},
+                        notes: p.notes || {},
+                        score_initial: p.score_initial || defaults.score_initial || {},
+                        intermediateSessions: [],
+                    }));
                 }
-            } catch (e) { console.error('Erreur chargement progression:', e); }
+            }
+        } catch (e) { console.error('Erreur chargement patients:', e); }
+
+        // Load progress for the first patient
+        const p = simulationData.patients[0];
+        if (p && p.id) {
+            await this._loadPatientProgress(p);
         }
 
         this.render();
+    },
+
+    async _loadPatientProgress(p) {
+        try {
+            const res = await fetch(`/api/patients/${p.id}/progress/`);
+            if (res.ok) {
+                const progress = await res.json();
+                p.completedSessions = progress.completed_sessions || [];
+                p.currentSession = progress.current_session || 1;
+                p.intermediateSessions = progress.intermediate_sessions || [];
+                if (progress.session_scores) p.sessionScores = progress.session_scores;
+                if (progress.notes) p.notes = progress.notes;
+            }
+        } catch (e) { console.error('Erreur chargement progression:', e); }
+    },
+
+    hasIncompleteExercises(patientId, sessionNo) {
+        const isIntermediate = sessionNo !== Math.floor(sessionNo);
+        const parentNo = isIntermediate ? Math.floor(sessionNo) : sessionNo;
+        const exercises = getExercisesForSession(parentNo);
+        
+        // Temporarily set context to check the target session's storage
+        const prevContext = window.activeSessionNo;
+        window.activeSessionNo = sessionNo;
+        
+        let hasIncomplete = false;
+        for (let ex of exercises) {
+            const status = ExerciseStorage.getStatus(patientId, ex.id);
+            if (status !== 'completed') {
+                hasIncomplete = true;
+                break;
+            }
+        }
+        
+        // Restore context
+        window.activeSessionNo = prevContext;
+        return hasIncomplete;
     },
 
     /* =================== NAVIGATION =================== */
@@ -55,6 +101,11 @@ const app = {
             if (p) {
                 this.state.activeSession = { no: sessionNo };
             }
+            // Set session context for ExerciseStorage scoping
+            window.activeSessionNo = sessionNo;
+        } else if (panelId !== 'session') {
+            // Clear session context when not in a session
+            window.activeSessionNo = undefined;
         }
         this.render();
         this.updateSidebarActive(panelId);
@@ -78,8 +129,12 @@ const app = {
         }
     },
 
-    selectPatient(id) {
-        this.state.selectedPatient = simulationData.patients.find(p => p.id === id);
+    async selectPatient(id) {
+        const p = simulationData.patients.find(p => p.id === id);
+        if (p) {
+            await this._loadPatientProgress(p);
+        }
+        this.state.selectedPatient = p;
         this.state.activeSession = null;
         this.showPanel('dossier');
     },
@@ -319,33 +374,89 @@ const app = {
         document.getElementById('dossier-progress-badge').textContent = `${Math.round((p.completedSessions.length / p.totalSessions) * 100)}%`;
 
         const timeline = document.getElementById('dossier-session-timeline');
-        timeline.innerHTML = sessions.map(s => {
+        let timelineHtml = '';
+
+        // Build full session list including intermediates
+        const allSessions = [...sessions];
+        if (p.intermediateSessions) {
+            p.intermediateSessions.forEach(inter => {
+                allSessions.push({
+                    no: inter.session_number,
+                    isIntermediate: true,
+                    parentSession: inter.parent_session,
+                    completed: inter.completed
+                });
+            });
+        }
+        allSessions.sort((a, b) => a.no - b.no);
+
+        timelineHtml = allSessions.map(s => {
             const isDone = p.completedSessions.includes(s.no);
-            const isCurrent = s.no === p.currentSession;
-            const exercisesForSession = getExercisesForSession(s.no);
+            const isCurrent = !s.isIntermediate && s.no === p.currentSession;
+            const parentNo = s.isIntermediate ? s.parentSession : s.no;
+            const exercisesForSession = getExercisesForSession(parentNo);
             const exerciseCount = exercisesForSession.length;
-            return `
-                <div class="timeline-row" onclick="app.showPanel('session', ${s.no})">
-                    <div class="timeline-dot ${isDone ? 'done' : isCurrent ? 'current' : 'pending'}">
-                        ${isDone ? '<i class="fas fa-check" style="font-size:0.65rem;"></i>' : s.no}
+
+            let label, dotContent, badgeHtml;
+
+            let hasIncompletes = false;
+            if (isDone) {
+                hasIncompletes = app.hasIncompleteExercises(p.id, s.no);
+            }
+
+            if (s.isIntermediate) {
+                label = `S\u00e9ance ${s.parentSession} \u2014 Interm\u00e9diaire`;
+                dotContent = `<i class="fas fa-rotate" style="font-size:0.6rem;"></i>`;
+                badgeHtml = isDone
+                    ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Termin\u00e9e</span>'
+                    : '<span class="badge" style="background:#8b5cf6;color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Interm\u00e9diaire</span>';
+            } else {
+                label = `S\u00e9ance ${s.no}`;
+                dotContent = isDone ? '<i class="fas fa-check" style="font-size:0.65rem;"></i>' : s.no;
+                badgeHtml = isDone
+                    ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Termin\u00e9e</span>'
+                    : isCurrent
+                        ? '<span class="badge" style="background:var(--warning);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">En cours</span>'
+                        : '';
+            }
+
+            if (hasIncompletes) {
+                badgeHtml += ' <span style="color:var(--warning);font-size:0.8rem;margin-left:4px;" title="Exercices non termin\u00e9s"><i class="fas fa-exclamation-triangle"></i></span>';
+            }
+
+            let row = `
+                <div class="timeline-row" onclick="app.showPanel('session', ${s.no})" style="${s.isIntermediate ? 'padding-left:20px;border-left:3px solid #8b5cf6;margin-left:14px;' : ''}">
+                    <div class="timeline-dot ${isDone ? 'done' : isCurrent ? 'current' : 'pending'}" style="${s.isIntermediate ? 'background:#8b5cf6;color:white;border-color:#8b5cf6;' : ''}">
+                        ${dotContent}
                     </div>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-size:0.84rem;font-weight:${isCurrent ? '700' : '500'};color:${isCurrent ? 'var(--primary)' : 'var(--text)'};">
-                            Séance ${s.no}
+                        <div style="font-size:0.84rem;font-weight:${isCurrent ? '700' : '500'};color:${s.isIntermediate ? '#8b5cf6' : isCurrent ? 'var(--primary)' : 'var(--text)'};">
+                            ${label}
                         </div>
                         <div style="font-size:0.72rem;color:var(--text-muted);">
-                            ${exerciseCount} exercice${exerciseCount > 1 ? 's' : ''} associé${exerciseCount > 1 ? 's' : ''}
+                            ${exerciseCount} exercice${exerciseCount > 1 ? 's' : ''} associ\u00e9${exerciseCount > 1 ? 's' : ''}
                         </div>
                     </div>
-                    ${isDone
-                        ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Terminée</span>'
-                        : isCurrent
-                            ? '<span class="badge" style="background:var(--warning);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">En cours</span>'
-                            : ''
-                    }
+                    ${badgeHtml}
                 </div>
             `;
+
+            // Add "+ Intermédiaire" button after completed regular sessions
+            if (!s.isIntermediate && isDone) {
+                row += `
+                    <div style="margin-left:28px;margin-bottom:4px;">
+                        <button class="btn-ghost" style="font-size:0.68rem;padding:2px 10px;color:#8b5cf6;border:1px dashed #c4b5fd;border-radius:8px;"
+                                onclick="event.stopPropagation(); app.addIntermediateSession(${s.no})">
+                            <i class="fas fa-plus me-1"></i>Ajouter séance intermédiaire
+                        </button>
+                    </div>
+                `;
+            }
+
+            return row;
         }).join('');
+
+        timeline.innerHTML = timelineHtml;
 
         const si = p.score_initial;
         document.getElementById('dossier-scores-initial').innerHTML = `
@@ -369,6 +480,38 @@ const app = {
         this.renderDossierExercisesTab(p);
         this.renderConsultation(p, 'dossier-consultation-card', 'dossier-consultation-area');
         this.renderObjectifs(p, 'dossier-objectifs-card', 'dossier-objectifs-area');
+    },
+
+    async addIntermediateSession(afterSessionNo) {
+        const p = this.state.selectedPatient;
+        if (!p) return;
+        try {
+            const res = await fetch('/api/sessions/add-intermediate/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: p.id,
+                    after_session: afterSessionNo
+                })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (!p.intermediateSessions) p.intermediateSessions = [];
+                p.intermediateSessions.push({
+                    session_number: data.session_number,
+                    parent_session: data.parent_session,
+                    completed: false
+                });
+                this.showToast(`Séance intermédiaire ${data.session_number} ajoutée après la séance ${afterSessionNo}.`, 'success');
+                this.renderDossier(document.getElementById('app-view'));
+            } else {
+                const err = await res.json();
+                this.showToast(`Erreur: ${err.error}`, 'danger');
+            }
+        } catch (e) {
+            console.error('Erreur ajout intermédiaire:', e);
+            this.showToast('Erreur réseau.', 'danger');
+        }
     },
 
     addSession() {
@@ -450,7 +593,11 @@ const app = {
         view.innerHTML = document.getElementById('tpl-session').innerHTML;
 
         let sessionTitle = `Séance ${s.no}`;
-        if (window.PROTOCOL) {
+        if (s.no !== Math.floor(s.no)) {
+            // This is an intermediate session
+            const parentNo = Math.floor(s.no);
+            sessionTitle = `Séance ${parentNo} — Intermédiaire`;
+        } else if (window.PROTOCOL) {
             const phase = window.PROTOCOL.phases.find(p => p.recommended_sessions.includes(s.no));
             if (phase) sessionTitle = phase.phase_name;
         }
@@ -495,34 +642,48 @@ const app = {
     renderSessionExercises(s) {
         const area = document.getElementById('session-exercises-area');
         if (!area) return;
-        const sessionExercises = getExercisesForSession(s.no);
-        const allExercises = EXERCISES;
-        const otherExercises = allExercises.filter(ex => !sessionExercises.some(se => se.id === ex.id));
+
+        const isIntermediate = s.no !== Math.floor(s.no);
+        const parentNo = isIntermediate ? Math.floor(s.no) : s.no;
+        let sessionExercises = getExercisesForSession(parentNo);
         const pid = this.state.selectedPatient?.id || 1;
 
-        const optionHtml = (ex, isSession) => {
+        // For intermediate sessions, only show exercises that are NOT completed
+        if (isIntermediate) {
+            sessionExercises = sessionExercises.filter(ex => {
+                const status = ExerciseStorage.getStatus(pid, ex.id);
+                return status !== 'completed';
+            });
+        }
+
+        const optionHtml = (ex) => {
             const status = ExerciseStorage.getStatus(pid, ex.id);
             const mark = status === 'completed' ? ' \u2713' : status === 'in_progress' ? ' \u25CF' : '';
             return `<option value="${ex.id}" ${this.state.sessionExerciseId === ex.id ? 'selected' : ''}>${ex.ref} ${ex.title}${mark}</option>`;
         };
 
+        const sessionLabel = isIntermediate
+            ? `S\u00e9ance ${parentNo} \u2014 Interm\u00e9diaire`
+            : `S\u00e9ance ${s.no}`;
+
         area.innerHTML = `
             <div style="margin-bottom:10px;">
                 <select class="form-select form-select-sm" id="session-exercise-select" onchange="app.selectSessionExercise(this.value)">
-                    <option value="">— Choisir un exercice —</option>
-                    <optgroup label="Exercices de cette séance">
-                        ${sessionExercises.map(ex => optionHtml(ex, true)).join('')}
+                    <option value="">\u2014 Choisir un exercice \u2014</option>
+                    <optgroup label="Exercices de cette s\u00e9ance">
+                        ${sessionExercises.map(ex => optionHtml(ex)).join('')}
                     </optgroup>
-                    ${otherExercises.length ? `
-                        <optgroup label="Autres exercices">
-                            ${otherExercises.map(ex => optionHtml(ex, false)).join('')}
-                        </optgroup>
-                    ` : ''}
                 </select>
             </div>
+            ${isIntermediate && sessionExercises.length === 0 ? `
+                <div style="text-align:center;padding:20px;color:var(--success);font-size:0.88rem;">
+                    <i class="fas fa-check-circle" style="font-size:1.5rem;display:block;margin-bottom:8px;"></i>
+                    Tous les exercices de la s\u00e9ance ${parentNo} sont compl\u00e9t\u00e9s !
+                </div>
+            ` : ''}
             ${sessionExercises.length ? `
                 <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px;padding-left:2px;">
-                    Séance ${s.no}
+                    ${sessionLabel}${isIntermediate ? ' \u2014 exercices restants' : ''}
                 </div>
             ` : ''}
             ${sessionExercises.map(ex => {
@@ -543,29 +704,6 @@ const app = {
                     </div>
                 `;
             }).join('')}
-            ${this.state.sessionExerciseId && !sessionExercises.some(e => e.id === this.state.sessionExerciseId) ? (() => {
-                const ex = getExerciseById(this.state.sessionExerciseId);
-                if (!ex) return '';
-                const status = ExerciseStorage.getStatus(pid, ex.id);
-                const isForm = !['info', 'model'].includes(ex.type);
-                const statusIcon = isForm ? (
-                    status === 'completed' ? '<i class="fas fa-check-circle" style="color:var(--success);"></i>' :
-                    status === 'in_progress' ? '<i class="fas fa-circle-half-stroke" style="color:var(--warning);"></i>' :
-                    '<i class="fas fa-circle" style="color:var(--text-light);font-size:0.6rem;"></i>'
-                ) : '<i class="fas fa-book-open" style="color:var(--info);font-size:0.7rem;"></i>';
-                return `
-                    <div class="divider" style="margin:8px 0;"></div>
-                    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px;padding-left:2px;">
-                        Exercice sélectionné
-                    </div>
-                    <div class="ex-session-item active" onclick="app.selectSessionExercise('${ex.id}')" style="background:var(--primary-light);border-left:3px solid var(--primary);">
-                        ${statusIcon}
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:0.8rem;font-weight:600;">${ex.ref} ${ex.title}</div>
-                        </div>
-                    </div>
-                `;
-            })() : ''}
         `;
     },
 
@@ -612,28 +750,106 @@ const app = {
         }
     },
 
+    markDoneAndNext(currentExId, nextExId) {
+        const pid = this.state.selectedPatient?.id || 1;
+        const ex = getExerciseById(currentExId);
+        const area = document.getElementById('session-exercise-render-area');
+
+        // Auto-save current exercise data if it's a form type
+        if (ex && area && !['info', 'model'].includes(ex.type)) {
+            const data = ExerciseRenderer._collectFormData(ex, area);
+            ExerciseStorage.save(pid, currentExId, data);
+        } else if (ex) {
+            // For info/model types, mark as viewed
+            ExerciseStorage.save(pid, currentExId, { _viewed: true });
+        }
+
+        this.showToast(`Exercice « ${ex?.title || currentExId} » complété ✓`, 'success');
+        this.selectSessionExercise(nextExId);
+    },
+
+    markDoneAndFinish(currentExId) {
+        const pid = this.state.selectedPatient?.id || 1;
+        const ex = getExerciseById(currentExId);
+        const area = document.getElementById('session-exercise-render-area');
+
+        // Auto-save current exercise data
+        if (ex && area && !['info', 'model'].includes(ex.type)) {
+            const data = ExerciseRenderer._collectFormData(ex, area);
+            ExerciseStorage.save(pid, currentExId, data);
+        } else if (ex) {
+            ExerciseStorage.save(pid, currentExId, { _viewed: true });
+        }
+
+        this.showToast(`Tous les exercices de cette séance sont terminés !`, 'success');
+        this.state.sessionExerciseId = null;
+        const s = this.state.activeSession;
+        if (s) {
+            this.renderSessionExercises(s);
+            this.renderSessionMainArea(s);
+        }
+    },
+
     renderSessionMainArea(s) {
         const area = document.getElementById('session-exercise-render-area');
         if (!area) return;
 
         const exId = this.state.sessionExerciseId;
+        const isIntermediate = s.no !== Math.floor(s.no);
+        const parentNo = isIntermediate ? Math.floor(s.no) : s.no;
+        let sessionExercises = getExercisesForSession(parentNo);
+        const pid = this.state.selectedPatient?.id || 1;
+
+        // For intermediate sessions, filter to only undone exercises
+        if (isIntermediate) {
+            sessionExercises = sessionExercises.filter(ex => {
+                const status = ExerciseStorage.getStatus(pid, ex.id);
+                return status !== 'completed';
+            });
+        }
+
+        let warningBanner = '';
+        if (!exId && !isIntermediate && s.no > 1) {
+            const prevSessionNo = s.no - 1;
+            const patient = this.state.selectedPatient;
+            if (patient && patient.completedSessions.includes(prevSessionNo) && this.hasIncompleteExercises(pid, prevSessionNo)) {
+                warningBanner = `
+                    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:12px;text-align:left;">
+                        <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-top:3px;font-size:1.1rem;"></i>
+                        <div>
+                            <div style="font-weight:600;color:#92400e;font-size:0.85rem;margin-bottom:4px;">Exercices non termin\u00e9s (S\u00e9ance ${prevSessionNo})</div>
+                            <div style="font-size:0.8rem;color:#92400e;line-height:1.4;">
+                                La s\u00e9ance pr\u00e9c\u00e9dente contient des exercices inachev\u00e9s. Vous pouvez cr\u00e9er une s\u00e9ance interm\u00e9diaire pour les finaliser, ou les ignorer pour le moment.
+                            </div>
+                            <div style="margin-top:8px;">
+                                <button class="btn-primary-custom" style="padding:4px 10px;font-size:0.75rem;background:#d97706;" onclick="app.addIntermediateSession(${prevSessionNo}); app.showPanel('dossier');">
+                                    Cr\u00e9er une s\u00e9ance interm\u00e9diaire
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
         if (!exId) {
-            const exercises = getExercisesForSession(s.no);
+            const exercises = sessionExercises;
             area.innerHTML = `
                 <div class="panel-card">
                     <div class="panel-card-body" style="text-align:center;padding:3rem;">
+                        ${warningBanner}
                         <i class="fas fa-clipboard-list" style="font-size:3rem;color:var(--primary-light);margin-bottom:1rem;display:block;"></i>
-                        <h5 style="font-weight:700;color:var(--text);margin-bottom:8px;">Séance ${s.no}</h5>
+                        <h5 style="font-weight:700;color:var(--text);margin-bottom:8px;">S\u00e9ance ${isIntermediate ? parentNo + ' \u2014 Interm\u00e9diaire' : s.no}</h5>
                         <p style="font-size:0.88rem;color:var(--text-muted);max-width:500px;margin:0 auto 1.5rem;">
-                            Sélectionnez un exercice dans le panneau de gauche pour commencer.
+                            ${exercises.length > 0
+                                ? 'S\u00e9lectionnez un exercice ou cliquez sur le premier pour commencer.'
+                                : 'Tous les exercices sont compl\u00e9t\u00e9s !'}
                         </p>
-                        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
-                            ${exercises.slice(0, 6).map(ex => `
-                                <button class="btn-ghost" style="font-size:0.78rem;" onclick="app.selectSessionExercise('${ex.id}')">
-                                    <i class="fas fa-arrow-right"></i> ${ex.ref} ${ex.title}
-                                </button>
-                            `).join('')}
-                        </div>
+                        ${exercises.length > 0 ? `
+                            <button class="btn-primary-custom" onclick="app.selectSessionExercise('${exercises[0].id}')">
+                                <i class="fas fa-play me-1"></i> Commencer (${exercises[0].ref} ${exercises[0].title})
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -642,8 +858,44 @@ const app = {
 
         const ex = getExerciseById(exId);
         if (!ex) return;
-        const pid = this.state.selectedPatient?.id || 1;
+
+        // Find current position in the session exercise list
+        const currentIdx = sessionExercises.findIndex(e => e.id === exId);
+        const prevEx = currentIdx > 0 ? sessionExercises[currentIdx - 1] : null;
+        const nextEx = currentIdx < sessionExercises.length - 1 ? sessionExercises[currentIdx + 1] : null;
+        const total = sessionExercises.length;
+        const pos = currentIdx >= 0 ? currentIdx + 1 : '?';
+
+        // Render the exercise
         ExerciseRenderer.render(ex, pid, area);
+
+        // Add pagination bar AFTER the exercise
+        const paginationHtml = `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;margin-top:16px;background:var(--bg-secondary, #f8fafc);border-radius:12px;border:1px solid var(--border, #e2e8f0);">
+                <div>
+                    ${prevEx ? `
+                        <button class="btn-ghost" style="font-size:0.82rem;padding:6px 14px;" onclick="app.selectSessionExercise('${prevEx.id}')">
+                            <i class="fas fa-arrow-left me-1"></i> Pr\u00e9c\u00e9dent
+                        </button>
+                    ` : '<div></div>'}
+                </div>
+                <div style="font-size:0.78rem;color:var(--text-muted, #64748b);font-weight:600;">
+                    <i class="fas fa-list-ol me-1"></i> ${pos} / ${total}
+                </div>
+                <div>
+                    ${nextEx ? `
+                        <button class="btn-primary-custom" style="font-size:0.82rem;padding:6px 14px;" onclick="app.markDoneAndNext('${ex.id}', '${nextEx.id}')">
+                            Suivant <i class="fas fa-arrow-right ms-1"></i>
+                        </button>
+                    ` : `
+                        <button class="btn-primary-custom" style="font-size:0.82rem;padding:6px 14px;background:var(--success, #10b981);" onclick="app.markDoneAndFinish('${ex.id}')">
+                            <i class="fas fa-check me-1"></i> Terminer
+                        </button>
+                    `}
+                </div>
+            </div>
+        `;
+        area.insertAdjacentHTML('beforeend', paginationHtml);
     },
 
     /* =================== EXERCISES PANEL =================== */

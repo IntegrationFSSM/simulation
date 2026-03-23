@@ -16,16 +16,20 @@ class Patient(models.TestCase if False else models.Model): # typing hack
 
 class TreatmentSession(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='sessions')
-    session_number = models.IntegerField()
+    session_number = models.FloatField()
     date = models.DateTimeField(auto_now_add=True)
     clinical_notes = models.TextField(blank=True)
     completed = models.BooleanField(default=False)
-    
+    is_intermediate = models.BooleanField(default=False)
+    parent_session_number = models.IntegerField(null=True, blank=True,
+        help_text="For intermediate sessions: the protocol session whose exercises are inherited.")
+
     class Meta:
-        unique_together = ('patient', 'session_number')
+        ordering = ['session_number']
 
     def __str__(self):
-        return f"Session {self.session_number} - {self.patient.name}"
+        suffix = " (Intermédiaire)" if self.is_intermediate else ""
+        return f"Session {self.session_number}{suffix} - {self.patient.name}"
 
 class PsychometricScore(models.Model):
     TEST_CHOICES = [

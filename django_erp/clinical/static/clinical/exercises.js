@@ -26,7 +26,9 @@ const ExerciseStorage = {
     },
 
     _key(patientId, exerciseId, entryIndex) {
-        const base = `p${patientId}_${exerciseId}`;
+        // Include session number to scope exercise status per session
+        const sessionPart = window.activeSessionNo !== undefined ? `_s${window.activeSessionNo}` : '';
+        const base = `p${patientId}${sessionPart}_${exerciseId}`;
         return entryIndex !== undefined ? `${base}_${entryIndex}` : base;
     },
 

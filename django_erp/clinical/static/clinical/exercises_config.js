@@ -497,8 +497,11 @@ const PROTOCOL_TOOL_MAP = {
 };
 
 function getExercisesForSession(sessionNo) {
+    // For intermediate sessions (e.g. 2.1), use the parent session number
+    const lookupNo = (sessionNo !== Math.floor(sessionNo)) ? Math.floor(sessionNo) : sessionNo;
+
     if (window.PROTOCOL) {
-        const phase = window.PROTOCOL.phases.find(p => p.recommended_sessions.includes(sessionNo));
+        const phase = window.PROTOCOL.phases.find(p => p.recommended_sessions.includes(lookupNo));
         if (phase) {
             const requestedTools = [...(phase.worksheets || []), ...(phase.guides || [])];
             let mappedExIds = [];
@@ -511,7 +514,7 @@ function getExercisesForSession(sessionNo) {
         }
     }
     // Fallback to hardcoded list if no protocol is loaded
-    return EXERCISES.filter(e => e.defaultSessions.includes(sessionNo));
+    return EXERCISES.filter(e => e.defaultSessions.includes(lookupNo));
 }
 
 function getExercisesByCategory(catId) {

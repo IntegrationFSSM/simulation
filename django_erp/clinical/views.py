@@ -42,6 +42,38 @@ def get_protocol(request, trouble_id):
     return JsonResponse(protocol)
 
 
+def list_patients(request):
+    """GET — Return all patients for the dashboard."""
+    patients = Patient.objects.all().order_by('-created_at')
+    data = []
+    for p in patients:
+        # Count completed sessions
+        completed = list(
+            TreatmentSession.objects.filter(patient=p, completed=True)
+            .values_list('session_number', flat=True)
+        )
+        completed_ints = [int(s) for s in completed if s == int(s)]
+        current_session = max(completed_ints) + 1 if completed_ints else 1
+
+        data.append({
+            'id': p.id,
+            'name': p.name,
+            'age': p.age,
+            'sexe': p.sexe,
+            'profession': p.profession,
+            'motif': p.motif,
+            'diagnoses': p.diagnoses or [],
+            'antecedents': p.antecedents,
+            'totalSessions': 15,
+            'currentSession': current_session,
+            'completedSessions': sorted(completed),
+            'sessionScores': {},
+            'notes': {},
+            'score_initial': {},
+        })
+    return JsonResponse({'patients': data})
+
+
 # ===================== SESSION PERSISTENCE API =====================
 @csrf_exempt
 def complete_session(request):
@@ -50,7 +82,7 @@ def complete_session(request):
         try:
             data = json.loads(request.body)
             patient = Patient.objects.get(id=data['patient_id'])
-            session_no = int(data['session_number'])
+            session_no = float(data['session_number'])
             notes = data.get('notes', '')
 
             session, created = TreatmentSession.objects.get_or_create(
@@ -74,14 +106,30 @@ def complete_session(request):
 
 
 def get_patient_progress(request, patient_id):
-    """GET — Return all completed sessions and scores for a patient."""
+    """GET — Return all completed sessions, intermediate sessions, and scores."""
     try:
         patient = Patient.objects.get(id=patient_id)
-        completed = list(
-            TreatmentSession.objects.filter(patient=patient, completed=True)
-            .values_list('session_number', flat=True)
+
+        # All sessions (regular + intermediate)
+        all_sessions = list(
+            TreatmentSession.objects.filter(patient=patient)
+            .values('session_number', 'completed', 'is_intermediate', 'parent_session_number', 'clinical_notes')
+            .order_by('session_number')
         )
-        current_session = max(completed) + 1 if completed else 1
+
+        completed = [s['session_number'] for s in all_sessions if s['completed']]
+        intermediates = [
+            {
+                'session_number': s['session_number'],
+                'parent_session': s['parent_session_number'],
+                'completed': s['completed'],
+            }
+            for s in all_sessions if s['is_intermediate']
+        ]
+
+        # Determine current session: next integer session not yet completed
+        completed_ints = [int(s) for s in completed if s == int(s)]
+        current_session = max(completed_ints) + 1 if completed_ints else 1
 
         # Load session scores
         session_scores = {}
@@ -101,11 +149,54 @@ def get_patient_progress(request, patient_id):
             'patient_id': patient.id,
             'completed_sessions': sorted(completed),
             'current_session': current_session,
+            'intermediate_sessions': intermediates,
             'session_scores': session_scores,
             'notes': notes,
         })
     except Patient.DoesNotExist:
         return JsonResponse({'error': 'Patient not found'}, status=404)
+
+
+@csrf_exempt
+def add_intermediate_session(request):
+    """POST — Insert an intermediate session after a completed session."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            patient = Patient.objects.get(id=data['patient_id'])
+            after_session = int(data['after_session'])  # e.g. 2
+
+            # Calculate next available sub-number: 2.1, 2.2, 2.3...
+            existing = TreatmentSession.objects.filter(
+                patient=patient,
+                is_intermediate=True,
+                parent_session_number=after_session
+            ).order_by('-session_number')
+
+            if existing.exists():
+                last_sub = existing.first().session_number
+                # e.g. last was 2.2 → next is 2.3
+                next_sub = round(last_sub + 0.1, 1)
+            else:
+                next_sub = after_session + 0.1  # e.g. 2.1
+
+            session = TreatmentSession.objects.create(
+                patient=patient,
+                session_number=next_sub,
+                is_intermediate=True,
+                parent_session_number=after_session,
+                completed=False,
+            )
+
+            return JsonResponse({
+                'success': True,
+                'session_number': session.session_number,
+                'parent_session': after_session,
+                'is_intermediate': True,
+            })
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'POST required'}, status=405)
 
 
 # ===================== MODULE 1: Modèles du TAG (Psychoeducation) =====================
