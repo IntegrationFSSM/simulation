@@ -20,6 +20,7 @@ const EXERCISES = [
         category: 'psychoeducation',
         type: 'info',
         defaultSessions: [1, 2],
+        resourcePdf: 'Resources/Guide/tag-dugas-brochure.pdf',
         description: "Document explicatif sur le trouble d'anxiété généralisée, ses symptômes et le rôle de l'évitement.",
         content: `
             <h5>Introduction</h5>
@@ -59,6 +60,7 @@ const EXERCISES = [
         category: 'psychoeducation',
         type: 'daily_log',
         defaultSessions: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+        resourcePdf: 'Resources/Fiches_travail/priseconscienceanxiete.pdf',
         description: "Notez vos inquiétudes trois fois par jour, avec le niveau d'anxiété et le type d'inquiétude.",
         columns: [
             { key: 'date', label: 'Date', inputType: 'date', width: '120px' },
@@ -114,6 +116,7 @@ const EXERCISES = [
         category: 'utilite',
         type: 'two_columns',
         defaultSessions: [3],
+        resourcePdf: 'Resources/Fiches_travail/avantagesdesavantagesinquietudes.pdf',
         description: "Lister les avantages (utilité) et les désavantages (inconvénients) de s'inquiéter.",
         columnA: { label: 'Avantages (utilité)', placeholder: "En quoi s'inquiéter m'est utile…" },
         columnB: { label: 'Désavantages (inconvénients)', placeholder: "En quoi s'inquiéter me nuit…" }
@@ -187,6 +190,7 @@ const EXERCISES = [
         category: 'intolerance',
         type: 'checklist_examples',
         defaultSessions: [4],
+        resourcePdf: 'Resources/Fiches_travail/manifestationsintoleranceincertitude.pdf',
         description: "Identifiez vos manifestations personnelles d'intolérance à l'incertitude.",
         items: [
             { label: 'Éviter de faire certaines choses', example: "Ex. Éviter d'aborder un sujet délicat avec un ami car on n'est pas certain de sa réaction." },

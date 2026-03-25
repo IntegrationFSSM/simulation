@@ -7,7 +7,7 @@ window.PROTOCOLS_DB = {
         "phases": [
             {
                 "phase_id": "phase_1_initial_interview",
-                "phase_name": "Session 1: Initial Interview",
+                "phase_name": "Séance 1 : Évaluation initiale",
                 "recommended_sessions": [1],
                 "assessments": [
                     { "tool_id": "BDI", "required": true },
@@ -21,7 +21,7 @@ window.PROTOCOLS_DB = {
             },
             {
                 "phase_id": "phase_2_worry_awareness",
-                "phase_name": "Session 2: Worry Awareness",
+                "phase_name": "Séance 2 : Prise de conscience des inquiétudes",
                 "recommended_sessions": [2],
                 "assessments": [],
                 "worksheets": ["Carnet_AutoEnregistrement_Inquietudes"],
@@ -29,7 +29,7 @@ window.PROTOCOLS_DB = {
             },
             {
                 "phase_id": "phase_3_reevaluating_usefulness",
-                "phase_name": "Session 3: Re-evaluating the Usefulness of Worrying",
+                "phase_name": "Séance 3 : Réévaluation de l'utilité des inquiétudes",
                 "recommended_sessions": [3],
                 "assessments": [],
                 "worksheets": ["Avantages_Desavantages_Inquietudes", "Exercice_Avocat_Du_Diable"],
@@ -37,7 +37,7 @@ window.PROTOCOLS_DB = {
             },
             {
                 "phase_id": "phase_4_intolerance_uncertainty",
-                "phase_name": "Sessions 4 to 6: Intolerance to Uncertainty",
+                "phase_name": "Séances 4 à 6 : Intolérance à l'incertitude",
                 "recommended_sessions": [4, 5, 6],
                 "assessments": [],
                 "worksheets": ["Liste_12_Comportements", "Action_Comportementale_Incertitude"],
@@ -45,7 +45,7 @@ window.PROTOCOLS_DB = {
             },
             {
                 "phase_id": "phase_5_problem_solving",
-                "phase_name": "Sessions 7 to 10: Problem Solving",
+                "phase_name": "Séances 7 à 10 : Résolution de problèmes",
                 "recommended_sessions": [7, 8, 9, 10],
                 "assessments": [],
                 "worksheets": ["Liste_Problemes_Actuels", "Reactions_Contreproductives", "Exercice_Resolution_Probleme_4Etapes"],
@@ -53,7 +53,7 @@ window.PROTOCOLS_DB = {
             },
             {
                 "phase_id": "phase_6_imaginal_exposure",
-                "phase_name": "Sessions 11 to 14: Imaginal Exposure",
+                "phase_name": "Séances 11 à 14 : Exposition en imagination",
                 "recommended_sessions": [11, 12, 13, 14],
                 "assessments": [
                     { "tool_id": "BDI", "required": false, "recurrence": "session_14" },
@@ -64,7 +64,7 @@ window.PROTOCOLS_DB = {
             },
             {
                 "phase_id": "phase_7_termination",
-                "phase_name": "Session 15: Termination and Relapse Prevention",
+                "phase_name": "Séance 15 : Clôture et prévention des rechutes",
                 "recommended_sessions": [15],
                 "assessments": [],
                 "worksheets": ["Plan_Objectifs_Futurs"],

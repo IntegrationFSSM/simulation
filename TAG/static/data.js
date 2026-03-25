@@ -1,6 +1,6 @@
 /**
  * Ory+ TCC Simulator — Data Layer
- * Protocole TAG (Dugas & Robichaud)
+ * Protocole TAG  
  */
 
 const SCALES = {
@@ -96,28 +96,107 @@ const SCALES = {
         ]
     },
     QIA: {
-        name: "Questionnaire sur l'inquiétude et l'anxiété (Diagnostic TAG)",
+        name: "QIA — Questionnaire sur l'inquiétude et l'anxiété (Dugas et al., 2001)",
         abbr: "QIA",
-        items: ["Critères diagnostiques TAG"],
-        options: ["OUI", "NON"],
-        maxScore: 10,
-        interpretation: [{ min: 0, max: 10, label: "Diagnostic", color: "primary" }]
+        items: [
+            "Est-ce que vos inquiétudes vous semblent excessives ou exagérées ? (Aucunement → Complètement excessives)",
+            "Durant les derniers six mois, combien de jours avez-vous été troublé(e) par des inquiétudes excessives ? (Jamais → Tous les jours)",
+            "Avez-vous de la difficulté à contrôler vos inquiétudes ? (Aucune difficulté → Difficulté extrême)",
+            "5a. Agité(e), surexcité(e) ou avoir les nerfs à vif (Aucunement → Très sévèrement)",
+            "5b. Facilement fatigué(e) (Aucunement → Très sévèrement)",
+            "5c. Difficulté à se concentrer ou blanc de mémoire (Aucunement → Très sévèrement)",
+            "5d. Irritabilité (Aucunement → Très sévèrement)",
+            "5e. Tensions musculaires (Aucunement → Très sévèrement)",
+            "5f. Problèmes de sommeil — difficulté à tomber ou rester endormi(e), sommeil agité (Aucunement → Très sévèrement)",
+            "À quel point l'anxiété ou l'inquiétude interfère avec votre vie (travail, activités sociales, famille) ? (Aucunement → Très sévèrement)"
+        ],
+        options: ["0", "1", "2", "3", "4", "5", "6", "7", "8"],
+        maxScore: 80,
+        interpretation: [
+            { min: 0, max: 20, label: "Symptômes légers", color: "success" },
+            { min: 21, max: 40, label: "Symptômes modérés", color: "info" },
+            { min: 41, max: 60, label: "Symptômes élevés", color: "warning" },
+            { min: 61, max: 80, label: "Symptômes sévères — critères TAG probables", color: "danger" }
+        ]
     },
     EII: {
-        name: "Échelle d'intolérance à l'incertitude",
+        name: "ÉII — Échelle d'intolérance à l'incertitude",
         abbr: "ÉII",
-        items: ["L'incertitude m'empêche d'agir", "Je dois toujours tout planifier"],
-        options: ["1", "2", "3", "4", "5"],
-        maxScore: 135,
-        interpretation: [{ min: 0, max: 135, label: "Score Intolérance", color: "warning" }]
+        items: [
+            "L'incertitude m'empêche de prendre position.",
+            "Être incertain(e) veut dire qu'on est une personne désorganisée.",
+            "L'incertitude rend la vie intolérable.",
+            "C'est injuste de ne pas avoir de garanties dans la vie.",
+            "Je ne peux pas avoir l'esprit tranquille tant que je ne sais pas ce qui va arriver le lendemain.",
+            "L'incertitude me rend mal à l'aise, anxieux(se) ou stressé(e).",
+            "Les imprévus me dérangent énormément.",
+            "Ça me frustre de ne pas avoir toute l'information dont j'ai besoin.",
+            "L'incertitude m'empêche de profiter pleinement de la vie.",
+            "On devrait tout prévenir pour éviter les surprises.",
+            "Un léger imprévu peut tout gâcher, même la meilleure des planifications.",
+            "Lorsque c'est le temps d'agir, l'incertitude me paralyse.",
+            "Être incertain(e) veut dire que je ne suis pas à la hauteur.",
+            "Lorsque je suis incertain(e), je ne peux pas aller de l'avant.",
+            "Lorsque je suis incertain(e), je ne peux pas bien fonctionner.",
+            "Contrairement à moi, les autres semblent toujours savoir où ils vont dans la vie.",
+            "L'incertitude me rend vulnérable, malheureux(se) ou triste.",
+            "Je veux toujours savoir ce que l'avenir me réserve.",
+            "Je déteste être pris(e) au dépourvu.",
+            "Le moindre doute peut m'empêcher d'agir.",
+            "Je devrais être capable de tout organiser à l'avance.",
+            "Être incertain(e), ça veut dire que je manque de confiance.",
+            "Je trouve injuste que d'autres personnes semblent certaines face à leur avenir.",
+            "L'incertitude m'empêche de bien dormir.",
+            "Je dois me retirer de toute situation incertaine."
+        ],
+        options: ["Pas du tout correspondant (0)", "Un peu correspondant (1)", "Assez correspondant (2)", "Très correspondant (3)", "Tout à fait correspondant (4)"],
+        maxScore: 100,
+        interpretation: [
+            { min: 0, max: 25, label: "Faible intolérance", color: "success" },
+            { min: 26, max: 50, label: "Intolérance modérée", color: "info" },
+            { min: 51, max: 75, label: "Intolérance élevée", color: "warning" },
+            { min: 76, max: 100, label: "Intolérance très élevée", color: "danger" }
+        ]
     },
     PSI_II: {
-        name: "Pourquoi s'inquiéter - Version II",
+        name: "PSI-II — Pourquoi s'inquiéter - Version II",
         abbr: "PSI-II",
-        items: ["S'inquiéter aide à résoudre", "S'inquiéter protège"],
-        options: ["1", "2", "3", "4", "5"],
-        maxScore: 125,
-        interpretation: [{ min: 0, max: 125, label: "Croyances Utilité", color: "info" }]
+        items: [
+            "Si je ne m'inquiétais pas, je serais insouciant(e) et irresponsable.",
+            "Si je m'inquiète, je serai moins ébranlé(e) lorsque des événements imprévus se produiront.",
+            "Je m'inquiète dans le but de savoir quoi faire.",
+            "Si je m'inquiète à l'avance, je serai moins déçu(e) si quelque chose de grave se produit.",
+            "Le fait de m'inquiéter m'aide à planifier mes actions pour résoudre un problème.",
+            "Le simple fait de m'inquiéter peut empêcher les malheurs d'arriver.",
+            "Si je ne m'inquiétais pas, cela ferait de moi une personne négligente.",
+            "C'est en m'inquiétant que je finis par entreprendre le travail que j'ai à faire.",
+            "Je m'inquiète parce que je pense que cela peut m'aider à trouver une solution à mon problème.",
+            "Le fait de m'inquiéter prouve que je suis une personne qui voit à ses affaires.",
+            "Trop penser à des choses positives peut les empêcher de se produire.",
+            "Le fait de m'inquiéter confirme que je suis une personne prévoyante.",
+            "Si un malheur arrive, je me sentirai moins responsable si je m'en suis inquiété auparavant.",
+            "En m'inquiétant, je peux trouver une meilleure façon de faire.",
+            "L'inquiétude me stimule et me rend plus efficace.",
+            "Le fait de m'inquiéter m'incite à passer à l'action.",
+            "Le simple fait de m'inquiéter diminue le risque que quelque chose de grave arrive.",
+            "En m'inquiétant, je fais certaines choses que je ne me déciderais pas à faire autrement.",
+            "Le fait de m'inquiéter me motive à faire les choses que je dois faire.",
+            "Mes inquiétudes à elles seules peuvent diminuer les risques de danger.",
+            "En m'inquiétant, j'augmente mes chances de trouver la meilleure solution.",
+            "Le fait de m'inquiéter me permettra de me sentir moins coupable si quelque chose de grave se produit.",
+            "Si je m'inquiète, je serai moins triste lorsqu'un événement négatif se produira.",
+            "En ne s'inquiétant pas, on peut attirer les malheurs.",
+            "Le fait de m'inquiéter démontre que je suis une bonne personne."
+        ],
+        options: ["Pas du tout vrai (1)", "Un peu vrai (2)", "Assez vrai (3)", "Très vrai (4)", "Tout à fait vrai (5)"],
+        maxScore: 100,
+        interpretation: [
+            { min: 25, max: 50, label: "Faibles croyances sur l'utilité", color: "success" },
+            { min: 51, max: 75, label: "Croyances modérées", color: "info" },
+            { min: 76, max: 100, label: "Croyances élevées", color: "warning" },
+            { min: 101, max: 125, label: "Croyances très élevées", color: "danger" },
+            { min: 0, max: 24, label: "Score minimal", color: "success" }
+        ]
     }
 };
 
@@ -153,7 +232,7 @@ const simulationData = {
                     { label: "Tension artérielle", resultat: "125/80 mmHg — Normale", statut: "ok" }
                 ],
                 diagnosticMedical: "Trouble d'anxiété généralisée (F41.1 — CIM-10). Symptomatologie anxieuse chronique avec retentissement fonctionnel significatif sur le plan professionnel et familial. Pas de comorbidité dépressive majeure. Pas d'indication de traitement médicamenteux à ce stade — orientation vers une prise en charge psychothérapeutique de type TCC.",
-                orientationPsy: "Recommandation d'un protocole de thérapie cognitivo-comportementale (TCC) spécifique au TAG, basé sur le modèle de Dugas & Robichaud. Objectif : réduction des inquiétudes excessives, amélioration de la tolérance à l'incertitude, restauration du fonctionnement socioprofessionnel."
+                orientationPsy: "Recommandation d'un protocole de thérapie cognitivo-comportementale (TCC) spécifique au TAG, basé sur le modèle de  . Objectif : réduction des inquiétudes excessives, amélioration de la tolérance à l'incertitude, restauration du fonctionnement socioprofessionnel."
             },
 
             objectifsTherapeutiques: [

@@ -1,16 +1,27 @@
 const LocalAPI = {
-    _getKey: () => 'ory_patients_' + (window.currentTroubleId || 'default'),
-
     getPatients: async () => {
-        let pts = localStorage.getItem(LocalAPI._getKey());
+        let pts = localStorage.getItem('ory_patients');
         if (!pts) {
-            // Seed defaults from the trouble-specific data layer (simulationData.patients)
-            // so this storage module can be shared across TAG/Bipolaire.
-            const defaults = (typeof simulationData !== 'undefined' && simulationData?.patients)
-                ? simulationData.patients
-                : [];
-            pts = Array.isArray(defaults) ? defaults : [];
-            localStorage.setItem(LocalAPI._getKey(), JSON.stringify(pts));
+            pts = [
+                {
+                    id: 1,
+                    name: "Nadia El Amrani",
+                    age: 34,
+                    sexe: "F",
+                    profession: "Comptable en cabinet",
+                    motif: "Inquiétudes envahissantes et persistantes depuis environ 2 ans touchant principalement le domaine professionnel, la santé de ses parents âgés et l'éducation de son fils.",
+                    diagnoses: ["F41.1 — TAG"],
+                    antecedents: "Aucun suivi psychiatrique antérieur. Épisode de stress aigu en 2022.",
+                    totalSessions: 15,
+                    currentSession: 1,
+                    completedSessions: [],
+                    sessionScores: {},
+                    notes: {},
+                    score_initial: { GAD7: 16, BAI: 18, BDI: 9 },
+                    intermediateSessions: []
+                }
+            ];
+            localStorage.setItem('ory_patients', JSON.stringify(pts));
         } else {
             pts = JSON.parse(pts);
         }
@@ -18,7 +29,7 @@ const LocalAPI = {
     },
 
     getPatientProgress: async (id) => {
-        let pts = JSON.parse(localStorage.getItem(LocalAPI._getKey()) || "[]");
+        let pts = JSON.parse(localStorage.getItem('ory_patients') || "[]");
         let p = pts.find(x => x.id === id);
         if (!p) return {};
         return {
@@ -31,11 +42,11 @@ const LocalAPI = {
     },
 
     savePatientData: (id, dataUpdater) => {
-        let pts = JSON.parse(localStorage.getItem(LocalAPI._getKey()) || "[]");
+        let pts = JSON.parse(localStorage.getItem('ory_patients') || "[]");
         let idx = pts.findIndex(x => x.id === id);
         if (idx !== -1) {
             dataUpdater(pts[idx]);
-            localStorage.setItem(LocalAPI._getKey(), JSON.stringify(pts));
+            localStorage.setItem('ory_patients', JSON.stringify(pts));
         }
     },
 

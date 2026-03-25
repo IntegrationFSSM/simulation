@@ -1,6 +1,6 @@
 /**
  * Ory+ TCC Simulator — Data Layer
- * Protocole TAG (Dugas & Robichaud)
+ * Protocole TAG  
  */
 
 const SCALES = {
@@ -129,7 +129,7 @@ const simulationData = {
                     { label: "Tension artérielle", resultat: "125/80 mmHg — Normale", statut: "ok" }
                 ],
                 diagnosticMedical: "Trouble d'anxiété généralisée (F41.1 — CIM-10). Symptomatologie anxieuse chronique avec retentissement fonctionnel significatif sur le plan professionnel et familial. Pas de comorbidité dépressive majeure. Pas d'indication de traitement médicamenteux à ce stade — orientation vers une prise en charge psychothérapeutique de type TCC.",
-                orientationPsy: "Recommandation d'un protocole de thérapie cognitivo-comportementale (TCC) spécifique au TAG, basé sur le modèle de Dugas & Robichaud. Objectif : réduction des inquiétudes excessives, amélioration de la tolérance à l'incertitude, restauration du fonctionnement socioprofessionnel."
+                orientationPsy: "Recommandation d'un protocole de thérapie cognitivo-comportementale (TCC) spécifique au TAG, basé sur le modèle de  . Objectif : réduction des inquiétudes excessives, amélioration de la tolérance à l'incertitude, restauration du fonctionnement socioprofessionnel."
             },
 
             objectifsTherapeutiques: [

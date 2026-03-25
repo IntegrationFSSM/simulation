@@ -67,10 +67,31 @@ const ExerciseStorage = {
     getStatus(patientId, exerciseId) {
         const all = this._loadAll();
         const directKey = this._key(patientId, exerciseId);
-        if (all[directKey]) return 'completed';
+        const data = all[directKey];
+        if (data) {
+            // Validate completion for form types based on the current trouble app rules.
+            if (app && typeof app._validateExerciseData === 'function') {
+                const ex = getExerciseById(exerciseId);
+                if (ex && ['info', 'model'].includes(ex.type)) {
+                    return 'completed'; // Reading exercises are always complete once viewed
+                }
+                const isComplete = app._validateExerciseData(ex, data, patientId);
+                return isComplete ? 'completed' : 'in_progress';
+            }
+            return 'completed'; // Fallback
+        }
+
+        // If session-scoped entries exist, validate completion based on entry data.
         const base = this._key(patientId, exerciseId);
         const prefix = base + '_';
-        if (Object.keys(all).some(k => k.startsWith(prefix))) return 'in_progress';
+        if (Object.keys(all).some(k => k.startsWith(prefix))) {
+            const ex = getExerciseById(exerciseId);
+            if (ex && app && typeof app._validateExerciseData === 'function') {
+                return app._validateExerciseData(ex, null, patientId) ? 'completed' : 'in_progress';
+            }
+            return 'in_progress';
+        }
+
         return 'not_started';
     },
 
@@ -115,12 +136,15 @@ const ExerciseRenderer = {
         const isForm = !['info', 'model'].includes(ex.type);
         return `
             <div class="exercise-detail">
-                <div class="exercise-detail-header" style="border-left:4px solid ${cat?.color || '#1e90ff'}">
+                <div class="exercise-detail-header d-flex justify-content-between align-items-center" style="border-left:4px solid ${cat?.color || '#1e90ff'}">
                     <div>
                         <span class="exercise-ref-badge">${ex.ref}</span>
-                        <h5 class="exercise-detail-title">${ex.title}</h5>
-                        <p class="exercise-detail-desc">${ex.description}</p>
+                        <h5 class="exercise-detail-title d-inline-block ms-2 mb-0">${ex.title}</h5>
+                        <p class="exercise-detail-desc mt-1 mb-0">${ex.description}</p>
                     </div>
+                    <button class="btn-ghost no-print" onclick="app.printExercise('${ex.id}')" title="Télécharger en PDF / Imprimer vierge" style="font-size: 1.3rem; color: var(--primary); padding: 8px 12px;">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
                 </div>
                 ${ex.helpText ? `<div class="exercise-help"><i class="fas fa-info-circle"></i> ${ex.helpText}</div>` : ''}
                 <div class="exercise-detail-body">
@@ -163,31 +187,39 @@ const ExerciseRenderer = {
     // ---- DAILY LOG (repeating table) ----
     renderDailyLog(ex, pid) {
         const saved = ExerciseStorage.getAllEntries(pid, ex.id);
+        const printRowsHtml = Array(7).fill(0).map((_, i) => this._logRow(ex, {}, `print-${i}`, true)).join('');
+        
         return `
             <div class="table-responsive">
                 <table class="table exercise-log-table" id="log-table-${ex.id}">
-                    <thead><tr>${ex.columns.map(c => `<th style="${c.width ? 'width:' + c.width : ''}">${c.label}</th>`).join('')}<th style="width:40px"></th></tr></thead>
+                    <thead><tr>${ex.columns.map(c => `<th style="${c.width ? 'width:' + c.width : ''}">${c.label}</th>`).join('')}<th class="no-print" style="width:40px"></th></tr></thead>
                     <tbody>
                         ${saved.map((entry, i) => this._logRow(ex, entry, i)).join('')}
                         ${this._logRow(ex, {}, saved.length)}
+                        ${printRowsHtml}
                     </tbody>
                 </table>
             </div>
-            <button class="btn-ghost btn-sm mt-2" onclick="ExerciseRenderer.addLogRow('${ex.id}')"><i class="fas fa-plus"></i> Ajouter une ligne</button>
+            <button class="btn-ghost btn-sm mt-2 no-print" onclick="ExerciseRenderer.addLogRow('${ex.id}')"><i class="fas fa-plus"></i> Ajouter une ligne</button>
         `;
     },
 
-    _logRow(ex, data, idx) {
-        return `<tr data-row="${idx}">${ex.columns.map(c => {
+    _logRow(ex, data, idx, isPrintOnly = false) {
+        const trClass = isPrintOnly ? 'print-only-row' : '';
+        return `<tr data-row="${idx}" class="${trClass}">${ex.columns.map(c => {
             const val = data[c.key] || '';
             if (c.inputType === 'select') {
-                return `<td><select class="form-select form-select-sm ex-input" data-key="${c.key}">${c.options.map(o => `<option ${val === o ? 'selected' : ''}>${o}</option>`).join('')}</select></td>`;
+                // Add an empty option so untouched rows don't count as "filled" (select defaults to first option otherwise).
+                return `<td><select class="form-select form-select-sm ex-input print-input" data-key="${c.key}">
+                    <option value="" ${val === '' ? 'selected' : ''}>—</option>
+                    ${c.options.map(o => `<option ${val === o ? 'selected' : ''} value="${o}">${o}</option>`).join('')}
+                </select></td>`;
             }
             if (c.inputType === 'number') {
-                return `<td><input type="number" class="form-control form-control-sm ex-input" data-key="${c.key}" value="${val}" min="${c.min||0}" max="${c.max||100}" style="width:${c.width||'80px'}"></td>`;
+                return `<td><input type="number" class="form-control form-control-sm ex-input print-input" data-key="${c.key}" value="${val}" min="${c.min||0}" max="${c.max||100}" style="width:${c.width||'80px'}"></td>`;
             }
-            return `<td><input type="${c.inputType||'text'}" class="form-control form-control-sm ex-input" data-key="${c.key}" value="${val}" placeholder="${c.placeholder||''}" style="${c.width?'width:'+c.width:''}"></td>`;
-        }).join('')}<td><button class="btn-sm-icon" onclick="this.closest('tr').remove()" title="Supprimer"><i class="fas fa-trash" style="font-size:0.7rem;color:var(--danger);"></i></button></td></tr>`;
+            return `<td><input type="${c.inputType||'text'}" class="form-control form-control-sm ex-input print-input" data-key="${c.key}" value="${val}" placeholder="${c.placeholder||''}" style="${c.width?'width:'+c.width:''}"></td>`;
+        }).join('')}<td class="no-print"><button class="btn-sm-icon" onclick="this.closest('tr').remove()" title="Supprimer"><i class="fas fa-trash" style="font-size:0.7rem;color:var(--danger);"></i></button></td></tr>`;
     },
 
     addLogRow(exId) {
@@ -484,6 +516,7 @@ const ExerciseRenderer = {
     _saveDailyLog(ex, patientId, container) {
         ExerciseStorage.clearExercise(patientId, ex.id);
         const rows = container.querySelectorAll(`#log-table-${ex.id} tbody tr`);
+        let savedCount = 0;
         rows.forEach((row, i) => {
             const rowData = {};
             let hasData = false;
@@ -496,7 +529,9 @@ const ExerciseRenderer = {
             });
             if (hasData) {
                 ExerciseStorage.save(patientId, ex.id, rowData, i);
+                savedCount++;
             }
         });
+        return savedCount;
     }
 };
