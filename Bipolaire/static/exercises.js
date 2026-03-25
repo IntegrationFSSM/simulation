@@ -69,7 +69,7 @@ const ExerciseStorage = {
         const directKey = this._key(patientId, exerciseId);
         const data = all[directKey];
         if (data) {
-            // New logic: Check if all fields are filled
+            // Validate completion for form types based on the current trouble app rules.
             if (app && typeof app._validateExerciseData === 'function') {
                 const ex = getExerciseById(exerciseId);
                 if (ex && ['info', 'model'].includes(ex.type)) {
@@ -80,7 +80,8 @@ const ExerciseStorage = {
             }
             return 'completed'; // Fallback
         }
-        
+
+        // If session-scoped entries exist, validate completion based on entry data.
         const base = this._key(patientId, exerciseId);
         const prefix = base + '_';
         if (Object.keys(all).some(k => k.startsWith(prefix))) {
@@ -88,9 +89,9 @@ const ExerciseStorage = {
             if (ex && app && typeof app._validateExerciseData === 'function') {
                 return app._validateExerciseData(ex, null, patientId) ? 'completed' : 'in_progress';
             }
-            return 'in_progress'; 
+            return 'in_progress';
         }
-        
+
         return 'not_started';
     },
 
@@ -208,6 +209,7 @@ const ExerciseRenderer = {
         return `<tr data-row="${idx}" class="${trClass}">${ex.columns.map(c => {
             const val = data[c.key] || '';
             if (c.inputType === 'select') {
+                // Add an empty option so untouched rows don't count as "filled" (select defaults to first option otherwise).
                 return `<td><select class="form-select form-select-sm ex-input print-input" data-key="${c.key}">
                     <option value="" ${val === '' ? 'selected' : ''}>—</option>
                     ${c.options.map(o => `<option ${val === o ? 'selected' : ''} value="${o}">${o}</option>`).join('')}

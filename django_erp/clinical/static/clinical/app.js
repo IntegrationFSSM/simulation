@@ -1,6 +1,6 @@
 /**
  * Ory+ TCC Simulator — Application Logic
- * Protocole TAG (Dugas & Robichaud, 2007)
+ * Protocole TAG ( , 2007)
  */
 
 const app = {
@@ -1111,7 +1111,7 @@ const app = {
         card.style.display = '';
         area.innerHTML = `
             <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;line-height:1.5;">
-                Plan de traitement TCC selon le protocole de Dugas & Robichaud (2007) — ${p.totalSessions} séances prévues.
+                Plan de traitement TCC selon le protocole de   (2007) — ${p.totalSessions} séances prévues.
             </div>
             ${p.objectifsTherapeutiques.map(obj => `
                 <div style="display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);">

@@ -5,6 +5,7 @@
 
 const app = {
     state: {
+        // Start on 'dossier' because Bipolaire/index.html only defines dossier/exercises/session templates.
         activePanel: 'dossier',
         selectedPatient: null,
         activeSession: null,
@@ -39,12 +40,16 @@ const app = {
             }
         } catch (e) { console.error('Erreur chargement patients:', e); }
 
-        // Auto-select the first patient and go directly to dossier
+        // Load progress for the first patient
         const p = simulationData.patients[0];
         if (p && p.id) {
             await this._loadPatientProgress(p);
         }
+
+        // Ensure something is rendered by selecting a patient immediately.
         this.state.selectedPatient = p || null;
+        this.state.activeSession = null;
+        this.state.activePanel = 'dossier';
 
         this.render();
     },
@@ -139,7 +144,13 @@ const app = {
     updateSidebarActive(panelId) {
         document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
         const bc = document.getElementById('breadcrumb-current');
-        if (panelId === 'dossier' && this.state.selectedPatient) {
+        if (panelId === 'dashboard') {
+            document.getElementById('nav-dashboard')?.classList.add('active');
+            bc.textContent = 'Tableau de Bord';
+        } else if (panelId === 'psy') {
+            document.getElementById('nav-psy')?.classList.add('active');
+            bc.textContent = 'Espace Psychologue';
+        } else if (panelId === 'dossier' && this.state.selectedPatient) {
             bc.textContent = `Dossier — ${this.state.selectedPatient.name}`;
         } else if (panelId === 'session' && this.state.activeSession) {
             bc.textContent = `Séance ${this.state.activeSession.no}`;
@@ -166,12 +177,195 @@ const app = {
             this.state.chartInstance = null;
         }
         const panel = this.state.activePanel;
-        if (panel === 'dossier') this.renderDossier(view);
+        if (panel === 'dashboard') this.renderDashboard(view);
+        else if (panel === 'psy') this.renderPsy(view);
+        else if (panel === 'dossier') this.renderDossier(view);
         else if (panel === 'session') this.renderSession(view);
         else if (panel === 'exercises') this.renderExercises(view);
         else if (panel === 'exercise_detail') this.renderExerciseDetail(view);
     },
 
+    /* =================== DASHBOARD =================== */
+    renderDashboard(view) {
+        view.innerHTML = document.getElementById('tpl-dashboard').innerHTML;
+
+        const totalCompleted = simulationData.patients.reduce((a, p) => a + p.completedSessions.length, 0);
+        const avgGAD = simulationData.patients.reduce((a, p) => a + (p.score_initial?.GAD7 || 0), 0) / simulationData.patients.length;
+
+        document.getElementById('stats-row').innerHTML = `
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                    <div><div class="stat-value">${simulationData.patients.length}</div><div class="stat-label">Patients actifs</div></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
+                    <div><div class="stat-value">${totalCompleted}</div><div class="stat-label">Séances complétées</div></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-chart-line"></i></div>
+                    <div><div class="stat-value">${avgGAD.toFixed(1)}</div><div class="stat-label">GAD-7 moyen initial</div></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-clipboard-list"></i></div>
+                    <div><div class="stat-value">${EXERCISES.length}</div><div class="stat-label">Exercices TAG</div></div>
+                </div>
+            </div>
+        `;
+
+        const grid = document.getElementById('patients-grid');
+        simulationData.patients.forEach(p => {
+            const pct = Math.round((p.completedSessions.length / p.totalSessions) * 100);
+            const gad = p.score_initial?.GAD7 || 0;
+            const gadInterp = this.interpretScale('GAD7', gad);
+            const avatarClass = p.sexe === 'F' ? 'female' : 'male';
+
+            const div = document.createElement('div');
+            div.className = 'col-md-6 col-lg-4';
+            div.innerHTML = `
+                <div class="patient-card" onclick="app.selectPatient(${p.id})">
+                    <div class="patient-card-header">
+                        <div class="patient-card-avatar ${avatarClass}">
+                            ${this.initials(p.name)}
+                        </div>
+                        <div class="patient-card-info" style="flex:1;min-width:0;">
+                            <h6>${p.name}</h6>
+                            <p>${p.age} ans &bull; ${p.sexe === 'F' ? 'Femme' : 'Homme'} &bull; ${p.profession}</p>
+                        </div>
+                    </div>
+                    <div class="patient-card-body">
+                        <div style="margin-bottom:8px;">
+                            ${p.diagnoses.map(d => `<span class="diagnosis-badge">${d}</span>`).join('')}
+                        </div>
+                        <div style="font-size:0.79rem;color:var(--text-muted);margin-bottom:10px;line-height:1.4;">
+                            <i class="fas fa-quote-left" style="font-size:0.7rem;opacity:0.5;"></i> ${this.truncate(p.motif, 120)}
+                        </div>
+                        <div class="progress-wrap">
+                            <div class="progress-label">
+                                <span>Avancement</span>
+                                <span style="font-weight:700;color:var(--primary);">${p.completedSessions.length}/${p.totalSessions}</span>
+                            </div>
+                            <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="gad-score-pill ${gadInterp.color}"><i class="fas fa-stethoscope"></i> GAD-7 : ${gad}</span>
+                            <span style="font-size:0.73rem;color:var(--text-muted);">Séance ${p.currentSession}</span>
+                        </div>
+                    </div>
+                    <div class="patient-card-footer">
+                        <button class="btn-primary-custom w-100" style="justify-content:center;" onclick="event.stopPropagation();app.selectPatient(${p.id})">
+                            <i class="fas fa-folder-open"></i> Ouvrir le dossier
+                        </button>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(div);
+        });
+    },
+
+    /* =================== ESPACE PSYCHOLOGUE =================== */
+    renderPsy(view) {
+        view.innerHTML = document.getElementById('tpl-psy').innerHTML;
+
+        const listEl = document.getElementById('psy-patient-list');
+        listEl.innerHTML = simulationData.patients.map(p => {
+            const isSelected = this.state.selectedPatient?.id === p.id;
+            return `
+                <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:4px;${isSelected ? 'background:var(--primary-light);border-left:3px solid var(--primary);' : 'border-left:3px solid transparent;'}" onclick="app.psySelectPatient(${p.id})">
+                    <div style="width:38px;height:38px;border-radius:50%;background:${isSelected ? 'var(--primary)' : 'var(--primary-light)'};color:${isSelected ? 'white' : 'var(--primary)'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;flex-shrink:0;">
+                        ${this.initials(p.name)}
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;font-size:0.88rem;">${p.name}</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);">${p.diagnoses.join(', ')} &bull; ${p.age} ans</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (this.state.selectedPatient) {
+            this.renderPsyDetail(this.state.selectedPatient);
+        }
+    },
+
+    psySelectPatient(id) {
+        this.state.selectedPatient = simulationData.patients.find(p => p.id === id);
+        this.renderPsy(document.getElementById('app-view'));
+    },
+
+    renderPsyDetail(p) {
+        const detailEl = document.getElementById('psy-patient-detail');
+        detailEl.innerHTML = `
+            <div style="display:flex;gap:14px;align-items:flex-start;">
+                <div style="width:52px;height:52px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">
+                    ${this.initials(p.name)}
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:1rem;margin-bottom:2px;">${p.name}</div>
+                    <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:6px;">${p.age} ans &bull; ${p.sexe === 'F' ? 'Femme' : 'Homme'} &bull; ${p.profession}</div>
+                    <div style="margin-bottom:8px;">${p.diagnoses.map(d => `<span class="diagnosis-badge">${d}</span>`).join('')}</div>
+                    <div style="font-size:0.82rem;color:var(--text);line-height:1.5;margin-bottom:8px;">
+                        <strong>Motif de consultation :</strong> ${p.motif}
+                    </div>
+                    ${p.antecedents ? `<div style="font-size:0.82rem;color:var(--text);line-height:1.5;">
+                        <strong>Antécédents :</strong> ${p.antecedents}
+                    </div>` : ''}
+                    <div style="margin-top:12px;">
+                        <button class="btn-primary-custom" style="font-size:0.8rem;" onclick="app.selectPatient(${p.id})">
+                            <i class="fas fa-folder-open"></i> Ouvrir le dossier complet
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const scoresEl = document.getElementById('psy-scores-area');
+        const si = p.score_initial;
+        // Bipolarity uses BDI-II + MDQ + ASRM (GAD7/BAI are from TAG and are not defined here).
+        scoresEl.innerHTML = ['MDQ', 'BDI', 'ASRM'].map(key => {
+            const scale = SCALES[key];
+            const score = si[key] || 0;
+            const interp = this.interpretScale(key, score);
+            return `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+                    <div>
+                        <div style="font-weight:600;font-size:0.84rem;">${scale.abbr}</div>
+                        <div style="font-size:0.72rem;color:var(--text-muted);">Score initial</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:1.1rem;font-weight:800;color:var(--primary);">${score}</span><span style="font-size:0.72rem;color:var(--text-muted);">/${scale.maxScore}</span>
+                        <div><span class="gad-score-pill ${interp.color}" style="font-size:0.65rem;">${interp.label}</span></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const sessEl = document.getElementById('psy-session-list');
+        const pct = Math.round((p.completedSessions.length / p.totalSessions) * 100);
+        sessEl.innerHTML = `
+            <div style="text-align:center;margin-bottom:10px;">
+                <div style="font-size:1.8rem;font-weight:900;color:var(--primary);">${p.completedSessions.length}<span style="font-size:0.85rem;opacity:0.7;">/${p.totalSessions}</span></div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">séances réalisées</div>
+            </div>
+            <div class="progress-bar-track" style="margin-bottom:10px;"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+            <div style="font-size:0.78rem;color:var(--text-muted);text-align:center;">
+                Prochaine séance : <strong style="color:var(--primary);">Séance ${p.currentSession}</strong>
+            </div>
+            <div style="text-align:center;margin-top:10px;">
+                <button class="btn-ghost" style="font-size:0.78rem;" onclick="app.showPanel('session', ${p.currentSession})">
+                    <i class="fas fa-play-circle"></i> Démarrer la séance ${p.currentSession}
+                </button>
+            </div>
+        `;
+
+        this.renderConsultation(p, 'psy-consultation-card', 'psy-consultation-area');
+    },
 
     /* =================== DOSSIER =================== */
     renderDossier(view) {
@@ -180,6 +374,32 @@ const app = {
 
         view.innerHTML = document.getElementById('tpl-dossier').innerHTML;
         const sessions = simulationData.getSessionsForPatient(p);
+
+        document.getElementById('dossier-header-content').innerHTML = `
+            <div class="d-flex align-items-center gap-4 flex-wrap">
+                <div style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:white;flex-shrink:0;">
+                    ${this.initials(p.name)}
+                </div>
+                <div style="flex:1;min-width:220px;">
+                    <h4 style="margin:0 0 4px;font-weight:800;">${p.name}</h4>
+                    <p style="margin:0 0 8px;opacity:0.85;font-size:0.88rem;">${p.age} ans &bull; ${p.sexe === 'F' ? 'Femme' : 'Homme'} &bull; ${p.profession}</p>
+                    <div style="font-size:0.82rem;opacity:0.8;line-height:1.4;"><i class="fas fa-notes-medical me-1"></i>${p.motif}</div>
+                    <div style="margin-top:10px;">${p.diagnoses.map(d => `<span style="background:rgba(255,255,255,0.2);color:white;border-radius:20px;padding:3px 12px;font-size:0.72rem;font-weight:700;margin-right:6px;">${d}</span>`).join('')}</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;min-width:220px;">
+                    <div style="font-size:2.1rem;font-weight:900;">${p.completedSessions.length}<span style="font-size:0.95rem;opacity:0.8;">/${p.totalSessions}</span></div>
+                    <div style="font-size:0.78rem;opacity:0.8;margin-bottom:6px;">séances prévues</div>
+                    <div class="d-flex gap-2" style="justify-content:flex-end;">
+                        <button class="btn-primary-custom" style="font-size:0.78rem;padding:6px 14px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);" onclick="app.addSession()">
+                            <i class="fas fa-plus"></i> Ajouter séance
+                        </button>
+                        <button class="btn-ghost" style="font-size:0.78rem;padding:6px 14px;color:white;border:1px solid rgba(255,255,255,0.3);" onclick="app.removeSession()">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
 
         document.getElementById('dossier-progress-badge').textContent = `${Math.round((p.completedSessions.length / p.totalSessions) * 100)}%`;
 
@@ -200,7 +420,7 @@ const app = {
         }
         allSessions.sort((a, b) => a.no - b.no);
 
-        const buildSessionHtml = (s) => {
+        timelineHtml = allSessions.map(s => {
             const isDone = p.completedSessions.includes(s.no);
             const isCurrent = !s.isIntermediate && s.no === p.currentSession;
             const parentNo = s.isIntermediate ? s.parentSession : s.no;
@@ -257,49 +477,16 @@ const app = {
                     <div style="margin-left:28px;margin-bottom:4px;">
                         <button class="btn-ghost" style="font-size:0.68rem;padding:2px 10px;color:#8b5cf6;border:1px dashed #c4b5fd;border-radius:8px;"
                                 onclick="event.stopPropagation(); app.addIntermediateSession(${s.no})">
-                            <i class="fas fa-plus me-1"></i>Ajouter s\u00e9ance interm\u00e9diaire
+                            <i class="fas fa-plus me-1"></i>Ajouter séance intermédiaire
                         </button>
                     </div>
                 `;
             }
 
             return row;
-        };
-
-        if (window.PROTOCOL && window.PROTOCOL.phases && window.PROTOCOL.phases.length > 0) {
-            window.PROTOCOL.phases.forEach((phase) => {
-                const phaseSessions = allSessions.filter(s => {
-                    const parentNo = s.isIntermediate ? s.parentSession : s.no;
-                    return phase.recommended_sessions.includes(parentNo);
-                });
-
-                if (phaseSessions.length === 0) return;
-
-                const isActive = phase.recommended_sessions.includes(Math.floor(p.currentSession));
-
-                timelineHtml += `
-                    <div class="phase-group mb-3" style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff;">
-                        <div class="phase-header d-flex justify-content-between align-items-center p-3" 
-                             style="cursor:pointer; background: ${isActive ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-secondary)'}; border-bottom: 1px solid var(--border);"
-                             onclick="const body = this.nextElementSibling; const icon = this.querySelector('.fa-chevron-down'); if (body.style.display === 'none') { body.style.display = 'block'; icon.style.transform = 'rotate(0deg)'; } else { body.style.display = 'none'; icon.style.transform = 'rotate(-90deg)'; }">
-                            <h6 class="m-0" style="font-size:0.95rem; color: ${isActive ? 'var(--primary)' : 'var(--text)'}; font-weight:700;">
-                                <i class="fas fa-layer-group me-2"></i>${phase.phase_name}
-                            </h6>
-                            <i class="fas fa-chevron-down" style="transition:transform 0.2s; color:var(--text-muted); ${isActive ? '' : 'transform:rotate(-90deg);'}"></i>
-                        </div>
-                        <div class="phase-sessions" style="display: ${isActive ? 'block' : 'none'}; padding: 12px 16px;">
-                            ${phaseSessions.map(buildSessionHtml).join('')}
-                        </div>
-                    </div>
-                `;
-            });
-        } else {
-            timelineHtml = allSessions.map(buildSessionHtml).join('');
-        }
+        }).join('');
 
         timeline.innerHTML = timelineHtml;
-
-        // Only render consultation (the only extra section kept)
         this.renderConsultation(p, 'dossier-consultation-card', 'dossier-consultation-area');
     },
 
@@ -350,8 +537,8 @@ const app = {
         const sessions = simulationData.getSessionsForPatient(p);
         const labels = sessions.map(s => `S${s.no}`);
         const data = sessions.map(s => {
-            if (p.sessionScores?.[s.no]?.GAD7 !== undefined) return p.sessionScores[s.no].GAD7;
-            if (s.no === 1 && p.score_initial?.GAD7) return p.score_initial.GAD7;
+            if (p.sessionScores?.[s.no]?.BDI !== undefined) return p.sessionScores[s.no].BDI;
+            if (s.no === 1 && p.score_initial?.BDI) return p.score_initial.BDI;
             return null;
         });
 
@@ -360,7 +547,7 @@ const app = {
             data: {
                 labels,
                 datasets: [{
-                    label: 'Score GAD-7',
+                    label: 'Score BDI-II',
                     data,
                     borderColor: '#1e90ff',
                     backgroundColor: 'rgba(30,144,255,0.08)',
@@ -379,13 +566,13 @@ const app = {
                     tooltip: { callbacks: {
                         label: ctx => {
                             const v = ctx.raw;
-                            const lbl = v <= 4 ? 'Minimal' : v <= 9 ? 'Léger' : v <= 14 ? 'Modéré' : 'Sévère';
-                            return `GAD-7 : ${v} — ${lbl}`;
+                            const lbl = v <= 13 ? 'Minimal' : v <= 19 ? 'Léger' : v <= 28 ? 'Modéré' : 'Sévère';
+                            return `BDI-II : ${v} — ${lbl}`;
                         }
                     }}
                 },
                 scales: {
-                    y: { min: 0, max: 21, grid: { color: 'rgba(0,0,0,0.04)' } },
+                    y: { min: 0, max: 63, grid: { color: 'rgba(0,0,0,0.04)' } },
                     x: { grid: { display: false } }
                 }
             }
@@ -563,9 +750,8 @@ const app = {
         const area = document.getElementById('session-exercise-render-area');
         let savedDailyCount = 0;
 
-        // Auto-save current exercise data if it's a form type
+        // Auto-save current exercise data
         if (ex && area && !['info', 'model'].includes(ex.type)) {
-            // daily_log is a table with repeating rows, so we must save it row-wise.
             if (ex.type === 'daily_log') {
                 savedDailyCount = ExerciseRenderer._saveDailyLog(ex, pid, area) || 0;
             } else {
@@ -573,14 +759,13 @@ const app = {
                 ExerciseStorage.save(pid, currentExId, data);
             }
         } else if (ex) {
-            // For info/model types, mark as viewed
             ExerciseStorage.save(pid, currentExId, { _viewed: true });
         }
 
-        // For daily_log we decide completion from the rows saved from the DOM.
         const status = ex && ex.type === 'daily_log'
             ? (savedDailyCount > 0 ? 'completed' : 'in_progress')
             : ExerciseStorage.getStatus(pid, currentExId);
+            
         if (status === 'completed') {
             this.showToast(`Exercice « ${ex?.title || currentExId} » complété ✓`, 'success');
         } else {
@@ -611,6 +796,7 @@ const app = {
         const status = ex && ex.type === 'daily_log'
             ? (savedDailyCount > 0 ? 'completed' : 'in_progress')
             : ExerciseStorage.getStatus(pid, currentExId);
+            
         if (status === 'completed') {
             this.showToast(`Exercice « ${ex?.title || currentExId} » complété ✓`, 'success');
         } else {
@@ -885,42 +1071,6 @@ const app = {
         this.state.activePanel = 'exercise_detail';
         this.render();
         this.updateSidebarActive('exercises');
-    },
-
-    printExercise(exerciseId) {
-        const ex = getExerciseById(exerciseId);
-        
-        // If the exercise has a pre-made PDF available in the Resources folder, download/open it instead
-        if (ex && ex.resourcePdf) {
-            window.open(ex.resourcePdf, '_blank');
-            return;
-        }
-
-        const exElement = document.querySelector('.exercise-detail');
-        if (!exElement) return;
-        
-        // Create an isolated wrapper that sits on top of everything
-        const printWrap = document.createElement('div');
-        printWrap.id = 'print-exercise-wrapper';
-        printWrap.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:999999;overflow:visible;padding:20px;';
-        
-        // Clone the exercise node to preserve the original view
-        const clone = exElement.cloneNode(true);
-        printWrap.appendChild(clone);
-        document.body.appendChild(printWrap);
-        
-        // Add a class to body to trigger our specific @media print rules
-        document.body.classList.add('is-printing-exercise');
-        
-        window.print();
-        
-        // Cleanup after the print dialog closes
-        setTimeout(() => {
-            if (document.body.contains(printWrap)) {
-                document.body.removeChild(printWrap);
-            }
-            document.body.classList.remove('is-printing-exercise');
-        }, 500);
     },
 
     renderExerciseDetail(view) {
@@ -1210,15 +1360,8 @@ const app = {
 
     /* =================== TOAST =================== */
     showToast(message, type = 'info') {
-        // Some trouble pages may not include the toast container immediately.
-        // Create it on-demand to avoid silent failures.
-        let stack = document.getElementById('toast-stack');
-        if (!stack) {
-            stack = document.createElement('div');
-            stack.id = 'toast-stack';
-            stack.className = 'toast-stack';
-            document.body.appendChild(stack);
-        }
+        const stack = document.getElementById('toast-stack');
+        if (!stack) return;
         const id = 'toast-' + Date.now();
         const icons = { success: 'fa-check-circle', warning: 'fa-triangle-exclamation', danger: 'fa-circle-xmark', info: 'fa-circle-info' };
         const colors = { success: 'var(--success)', warning: 'var(--warning)', danger: 'var(--danger)', info: 'var(--primary)' };
@@ -1227,10 +1370,10 @@ const app = {
         toast.id = id;
         toast.style.borderLeftColor = colors[type] || colors.info;
         toast.innerHTML = `
-            <i class="fa-solid ${icons[type] || icons.info}" style="color:${colors[type]};font-size:1.1rem;"></i>
+            <i class="fas ${icons[type] || icons.info}" style="color:${colors[type]};font-size:1.1rem;"></i>
             <span style="flex:1;">${message}</span>
             <button class="btn-sm-icon" onclick="document.getElementById('${id}').remove()" style="border:none;background:none;width:24px;height:24px;">
-                <i class="fa-solid fa-xmark"></i>
+                <i class="fas fa-xmark"></i>
             </button>
         `;
         stack.appendChild(toast);

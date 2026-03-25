@@ -4,309 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ory+ | Protocoles TCC</title>
-    <meta name="description" content="Plateforme clinique de simulation de protocoles TCC — Oryplus ERP">
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-dark: #3730a3;
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .header {
-            background-color: #fff;
-            padding: 1.5rem 3rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
-            color: white;
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
-        }
-
-        .logo-text {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: var(--text-main);
-            letter-spacing: -0.5px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-            flex: 1;
-        }
-
-        .hero {
-            text-align: center;
-            margin-bottom: 4rem;
-            animation: fadeInDown 0.6s ease-out;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            font-weight: 900;
-            color: var(--text-main);
-            margin-bottom: 1rem;
-            letter-spacing: -1px;
-        }
-
-        .hero p {
-            font-size: 1.15rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 2rem;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 2rem;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
-            border: 1px solid rgba(0,0,0,0.03);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            animation: fadeInUp 0.5s ease-out backwards;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #4f46e5, #8b5cf6);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
-        }
-
-        .card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .card-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            background: #e0e7ff;
-            color: #4f46e5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .card:hover .card-icon {
-            background: #4f46e5;
-            color: white;
-            box-shadow: 0 8px 15px rgba(79, 70, 229, 0.25);
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            margin-bottom: 0.75rem;
-            color: var(--text-main);
-        }
-
-        .card-desc {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-            flex: 1;
-            margin-bottom: 1.5rem;
-        }
-
-        .card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--primary);
-            border-top: 1px solid #f1f5f9;
-            padding-top: 1rem;
-        }
-
-        .card-footer i {
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover .card-footer i {
-            transform: translateX(4px);
-        }
-
-        /* Coming soon card styling */
-        .card.coming-soon {
-            opacity: 0.7;
-            pointer-events: none;
-            background: #f8fafc;
-        }
-        
-        .card.coming-soon .card-icon {
-            background: #f1f5f9;
-            color: #94a3b8;
-        }
-        
-        .card.coming-soon::before {
-            background: #cbd5e1;
-        }
-
-        .badge {
-            background: #e2e8f0;
-            color: #475569;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            border-top: 1px solid #e2e8f0;
-            background: #fff;
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="TAG/static/styles.css?v=2.0.1">
 </head>
-<body>
+<body style="background:var(--bg-body, #f1f5f9);">
 
-    <header class="header">
-        <a href="#" class="header-logo">
-            <div class="logo-icon"><i class="fas fa-brain"></i></div>
-            <div class="logo-text">Ory<sup>+</sup> <span style="font-weight:400;color:var(--text-muted);font-size:1.1rem;margin-left:4px;">Plateforme Clinique</span></div>
-        </a>
+<!-- ========================== SIDEBAR ========================== -->
+<div class="sidebar-container">
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="navbar-brand d-flex align-items-center">
+                <button class="logo-toggle" id="logoToggle" type="button" style="padding:0;background:none;border:none;display:flex;align-items:center;cursor:pointer;">
+                    <img src="TAG/static/img/OryLogofig.png" alt="Logo" class="sidebar-logo" style="height:40px;object-fit:contain;margin-right:-3px;" onerror="this.style.display='none'">
+                </button>
+                <a href="#" class="brand-link" style="text-decoration:none;display:flex;align-items:center;">
+                    <img src="TAG/static/img/OryLogoBrand.png" alt="Symbol" class="brand-text-img" style="height:20px;object-fit:contain;" onerror="this.style.display='none'">
+                </a>
+            </div>
+        </div>
+
+        <div class="menu-items">
+            <div style="padding: 15px 20px; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                Protocoles Cliniques
+            </div>
+            <a href="TAG/index.html" class="menu-item">
+                <i class="fas fa-wind"></i>
+                <span class="menu-text">TAG  </span>
+            </a>
+            <a href="Bipolaire/index.html" class="menu-item">
+                <i class="fas fa-arrows-alt-v"></i>
+                <span class="menu-text">Trouble Bipolaire</span>
+            </a>
+        </div>
+    </nav>
+</div>
+
+<!-- ========================== MAIN ========================== -->
+<div class="main-content">
+    <header class="top-header">
+        <div class="breadcrumb-nav">
+            <span class="part">Espace Psychologue</span>
+            <span class="sep">/</span>
+            <span class="active-part" id="breadcrumb-current">Accueil</span>
+        </div>
+        <div class="header-right">
+            <div class="user-chip">
+                <div class="avatar">PSY</div>
+                <span class="uname">Clinique Ory+</span>
+            </div>
+        </div>
     </header>
 
-    <div class="container">
-        <div class="hero">
-            <h1>Protocoles d'Intervention TCC</h1>
-            <p>Sélectionnez un trouble spécifique pour démarrer l'environnement de simulation et de suivi psychiatrique dédié.</p>
-        </div>
-
-        <div class="grid">
-            <!-- TAG Active Protocol -->
-            <a href="TAG/index.html" class="card" style="animation-delay: 0.1s">
-                <div class="card-icon"><i class="fas fa-wind"></i></div>
-                <h2 class="card-title">Trouble d'Anxiété Généralisée (TAG)</h2>
-                <p class="card-desc">Environnement complet simulant le protocole TCC de référence (Dugas & Robichaud, 2007) axé sur l'intolérance à l'incertitude.</p>
-                <div class="card-footer">
-                    <span>15 Séances • 26 Exercices</span>
-                    <i class="fas fa-arrow-right"></i>
-                </div>
-            </a>
-
-            <!-- Placeholder for Future 1 -->
-            <div class="card coming-soon" style="animation-delay: 0.2s">
-                <div style="position: absolute; top: 20px; right: 20px;"><span class="badge">Bientôt disponible</span></div>
-                <div class="card-icon"><i class="fas fa-cloud-rain"></i></div>
-                <h2 class="card-title">Épisode Dépressif Majeur</h2>
-                <p class="card-desc">Protocole TCC standard pour la dépression unipolar (Beck). Restructuration cognitive et activation comportementale.</p>
-                <div class="card-footer" style="color:#94a3b8;">
-                    <span>En développement</span>
-                    <i class="fas fa-lock"></i>
-                </div>
-            </div>
-
-            <!-- Placeholder for Future 2 -->
-            <div class="card coming-soon" style="animation-delay: 0.3s">
-                <div style="position: absolute; top: 20px; right: 20px;"><span class="badge">Bientôt disponible</span></div>
-                <div class="card-icon"><i class="fas fa-users-slash"></i></div>
-                <h2 class="card-title">Trouble d'Anxiété Sociale</h2>
-                <p class="card-desc">Protocole TCC de Clark & Wells ciblant les biais attentionnels, l'évitement et les pensées automatiques liées au regard d'autrui.</p>
-                <div class="card-footer" style="color:#94a3b8;">
-                    <span>En développement</span>
-                    <i class="fas fa-lock"></i>
-                </div>
-            </div>
-            
-            <!-- Placeholder for Future 3 -->
-            <div class="card coming-soon" style="animation-delay: 0.4s">
-                <div style="position: absolute; top: 20px; right: 20px;"><span class="badge">Bientôt disponible</span></div>
-                <div class="card-icon"><i class="fas fa-heart-pulse"></i></div>
-                <h2 class="card-title">Trouble Panique & Agoraphobie</h2>
-                <p class="card-desc">Protocole d'exposition intéroceptive (Barlow). Gestion des sensations physiques et restructuration catastrophiste.</p>
-                <div class="card-footer" style="color:#94a3b8;">
-                    <span>En développement</span>
-                    <i class="fas fa-lock"></i>
-                </div>
-            </div>
-        </div>
+    <div id="app-view" style="padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh; color: var(--text-muted); text-align: center;">
+        <div style="font-size: 4rem; opacity: 0.15; margin-bottom: 1.5rem; color: var(--primary);"><i class="fas fa-laptop-medical"></i></div>
+        <h2 style="font-weight: 800; color: var(--text-main, #1e293b); margin-bottom: 1rem;">Ory+ Plateforme Clinique</h2>
+        <p style="max-width: 500px; font-size: 1.05rem; line-height: 1.6;">Veuillez sélectionner un protocole clinique dans le menu latéral gauche pour accéder au dossier patient de ce trouble spécifique.</p>
     </div>
 
-    <footer class="footer">
-        &copy; <span id="year"></span> Ory+ — ERP Médical | CLV Tech
-        <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
-    </footer>
+</div>
 
 </body>
 </html>
