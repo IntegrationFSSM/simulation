@@ -2,25 +2,12 @@ const LocalAPI = {
     getPatients: async () => {
         let pts = localStorage.getItem('ory_patients');
         if (!pts) {
-            pts = [
-                {
-                    id: 1,
-                    name: "Nadia El Amrani",
-                    age: 34,
-                    sexe: "F",
-                    profession: "Comptable en cabinet",
-                    motif: "Inquiétudes envahissantes et persistantes depuis environ 2 ans touchant principalement le domaine professionnel, la santé de ses parents âgés et l'éducation de son fils.",
-                    diagnoses: ["F41.1 — TAG"],
-                    antecedents: "Aucun suivi psychiatrique antérieur. Épisode de stress aigu en 2022.",
-                    totalSessions: 15,
-                    currentSession: 1,
-                    completedSessions: [],
-                    sessionScores: {},
-                    notes: {},
-                    score_initial: { GAD7: 16, BAI: 18, BDI: 9 },
-                    intermediateSessions: []
-                }
-            ];
+            // Seed defaults from the trouble-specific data layer (simulationData.patients)
+            // so this storage module can be shared across TAG/Bipolaire.
+            const defaults = (typeof simulationData !== 'undefined' && simulationData?.patients)
+                ? simulationData.patients
+                : [];
+            pts = Array.isArray(defaults) ? defaults : [];
             localStorage.setItem('ory_patients', JSON.stringify(pts));
         } else {
             pts = JSON.parse(pts);

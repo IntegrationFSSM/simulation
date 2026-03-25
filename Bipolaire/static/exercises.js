@@ -67,30 +67,10 @@ const ExerciseStorage = {
     getStatus(patientId, exerciseId) {
         const all = this._loadAll();
         const directKey = this._key(patientId, exerciseId);
-        const data = all[directKey];
-        if (data) {
-            // New logic: Check if all fields are filled
-            if (app && typeof app._validateExerciseData === 'function') {
-                const ex = getExerciseById(exerciseId);
-                if (ex && ['info', 'model'].includes(ex.type)) {
-                    return 'completed'; // Reading exercises are always complete once viewed
-                }
-                const isComplete = app._validateExerciseData(ex, data, patientId);
-                return isComplete ? 'completed' : 'in_progress';
-            }
-            return 'completed'; // Fallback
-        }
-        
+        if (all[directKey]) return 'completed';
         const base = this._key(patientId, exerciseId);
         const prefix = base + '_';
-        if (Object.keys(all).some(k => k.startsWith(prefix))) {
-            const ex = getExerciseById(exerciseId);
-            if (ex && app && typeof app._validateExerciseData === 'function') {
-                return app._validateExerciseData(ex, null, patientId) ? 'completed' : 'in_progress';
-            }
-            return 'in_progress'; 
-        }
-        
+        if (Object.keys(all).some(k => k.startsWith(prefix))) return 'in_progress';
         return 'not_started';
     },
 

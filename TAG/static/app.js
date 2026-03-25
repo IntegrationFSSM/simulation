@@ -5,7 +5,7 @@
 
 const app = {
     state: {
-        activePanel: 'dashboard',
+        activePanel: 'dossier',
         selectedPatient: null,
         activeSession: null,
         activeExerciseId: null,
@@ -39,11 +39,12 @@ const app = {
             }
         } catch (e) { console.error('Erreur chargement patients:', e); }
 
-        // Load progress for the first patient
+        // Auto-select the first patient and go directly to dossier
         const p = simulationData.patients[0];
         if (p && p.id) {
             await this._loadPatientProgress(p);
         }
+        this.state.selectedPatient = p || null;
 
         this.render();
     },
@@ -138,13 +139,7 @@ const app = {
     updateSidebarActive(panelId) {
         document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
         const bc = document.getElementById('breadcrumb-current');
-        if (panelId === 'dashboard') {
-            document.getElementById('nav-dashboard')?.classList.add('active');
-            bc.textContent = 'Tableau de Bord';
-        } else if (panelId === 'psy') {
-            document.getElementById('nav-psy')?.classList.add('active');
-            bc.textContent = 'Espace Psychologue';
-        } else if (panelId === 'dossier' && this.state.selectedPatient) {
+        if (panelId === 'dossier' && this.state.selectedPatient) {
             bc.textContent = `Dossier — ${this.state.selectedPatient.name}`;
         } else if (panelId === 'session' && this.state.activeSession) {
             bc.textContent = `Séance ${this.state.activeSession.no}`;
@@ -171,195 +166,12 @@ const app = {
             this.state.chartInstance = null;
         }
         const panel = this.state.activePanel;
-        if (panel === 'dashboard') this.renderDashboard(view);
-        else if (panel === 'psy') this.renderPsy(view);
-        else if (panel === 'dossier') this.renderDossier(view);
+        if (panel === 'dossier') this.renderDossier(view);
         else if (panel === 'session') this.renderSession(view);
         else if (panel === 'exercises') this.renderExercises(view);
         else if (panel === 'exercise_detail') this.renderExerciseDetail(view);
     },
 
-    /* =================== DASHBOARD =================== */
-    renderDashboard(view) {
-        view.innerHTML = document.getElementById('tpl-dashboard').innerHTML;
-
-        const totalCompleted = simulationData.patients.reduce((a, p) => a + p.completedSessions.length, 0);
-        const avgGAD = simulationData.patients.reduce((a, p) => a + (p.score_initial?.GAD7 || 0), 0) / simulationData.patients.length;
-
-        document.getElementById('stats-row').innerHTML = `
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
-                    <div><div class="stat-value">${simulationData.patients.length}</div><div class="stat-label">Patients actifs</div></div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
-                    <div><div class="stat-value">${totalCompleted}</div><div class="stat-label">Séances complétées</div></div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon orange"><i class="fas fa-chart-line"></i></div>
-                    <div><div class="stat-value">${avgGAD.toFixed(1)}</div><div class="stat-label">GAD-7 moyen initial</div></div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon purple"><i class="fas fa-clipboard-list"></i></div>
-                    <div><div class="stat-value">${EXERCISES.length}</div><div class="stat-label">Exercices TAG</div></div>
-                </div>
-            </div>
-        `;
-
-        const grid = document.getElementById('patients-grid');
-        simulationData.patients.forEach(p => {
-            const pct = Math.round((p.completedSessions.length / p.totalSessions) * 100);
-            const gad = p.score_initial?.GAD7 || 0;
-            const gadInterp = this.interpretScale('GAD7', gad);
-            const avatarClass = p.sexe === 'F' ? 'female' : 'male';
-
-            const div = document.createElement('div');
-            div.className = 'col-md-6 col-lg-4';
-            div.innerHTML = `
-                <div class="patient-card" onclick="app.selectPatient(${p.id})">
-                    <div class="patient-card-header">
-                        <div class="patient-card-avatar ${avatarClass}">
-                            ${this.initials(p.name)}
-                        </div>
-                        <div class="patient-card-info" style="flex:1;min-width:0;">
-                            <h6>${p.name}</h6>
-                            <p>${p.age} ans &bull; ${p.sexe === 'F' ? 'Femme' : 'Homme'} &bull; ${p.profession}</p>
-                        </div>
-                    </div>
-                    <div class="patient-card-body">
-                        <div style="margin-bottom:8px;">
-                            ${p.diagnoses.map(d => `<span class="diagnosis-badge">${d}</span>`).join('')}
-                        </div>
-                        <div style="font-size:0.79rem;color:var(--text-muted);margin-bottom:10px;line-height:1.4;">
-                            <i class="fas fa-quote-left" style="font-size:0.7rem;opacity:0.5;"></i> ${this.truncate(p.motif, 120)}
-                        </div>
-                        <div class="progress-wrap">
-                            <div class="progress-label">
-                                <span>Avancement</span>
-                                <span style="font-weight:700;color:var(--primary);">${p.completedSessions.length}/${p.totalSessions}</span>
-                            </div>
-                            <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
-                        </div>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="gad-score-pill ${gadInterp.color}"><i class="fas fa-stethoscope"></i> GAD-7 : ${gad}</span>
-                            <span style="font-size:0.73rem;color:var(--text-muted);">Séance ${p.currentSession}</span>
-                        </div>
-                    </div>
-                    <div class="patient-card-footer">
-                        <button class="btn-primary-custom w-100" style="justify-content:center;" onclick="event.stopPropagation();app.selectPatient(${p.id})">
-                            <i class="fas fa-folder-open"></i> Ouvrir le dossier
-                        </button>
-                    </div>
-                </div>
-            `;
-            grid.appendChild(div);
-        });
-    },
-
-    /* =================== ESPACE PSYCHOLOGUE =================== */
-    renderPsy(view) {
-        view.innerHTML = document.getElementById('tpl-psy').innerHTML;
-
-        const listEl = document.getElementById('psy-patient-list');
-        listEl.innerHTML = simulationData.patients.map(p => {
-            const isSelected = this.state.selectedPatient?.id === p.id;
-            return `
-                <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:4px;${isSelected ? 'background:var(--primary-light);border-left:3px solid var(--primary);' : 'border-left:3px solid transparent;'}" onclick="app.psySelectPatient(${p.id})">
-                    <div style="width:38px;height:38px;border-radius:50%;background:${isSelected ? 'var(--primary)' : 'var(--primary-light)'};color:${isSelected ? 'white' : 'var(--primary)'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;flex-shrink:0;">
-                        ${this.initials(p.name)}
-                    </div>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-weight:600;font-size:0.88rem;">${p.name}</div>
-                        <div style="font-size:0.75rem;color:var(--text-muted);">${p.diagnoses.join(', ')} &bull; ${p.age} ans</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        if (this.state.selectedPatient) {
-            this.renderPsyDetail(this.state.selectedPatient);
-        }
-    },
-
-    psySelectPatient(id) {
-        this.state.selectedPatient = simulationData.patients.find(p => p.id === id);
-        this.renderPsy(document.getElementById('app-view'));
-    },
-
-    renderPsyDetail(p) {
-        const detailEl = document.getElementById('psy-patient-detail');
-        detailEl.innerHTML = `
-            <div style="display:flex;gap:14px;align-items:flex-start;">
-                <div style="width:52px;height:52px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">
-                    ${this.initials(p.name)}
-                </div>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-weight:700;font-size:1rem;margin-bottom:2px;">${p.name}</div>
-                    <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:6px;">${p.age} ans &bull; ${p.sexe === 'F' ? 'Femme' : 'Homme'} &bull; ${p.profession}</div>
-                    <div style="margin-bottom:8px;">${p.diagnoses.map(d => `<span class="diagnosis-badge">${d}</span>`).join('')}</div>
-                    <div style="font-size:0.82rem;color:var(--text);line-height:1.5;margin-bottom:8px;">
-                        <strong>Motif de consultation :</strong> ${p.motif}
-                    </div>
-                    ${p.antecedents ? `<div style="font-size:0.82rem;color:var(--text);line-height:1.5;">
-                        <strong>Antécédents :</strong> ${p.antecedents}
-                    </div>` : ''}
-                    <div style="margin-top:12px;">
-                        <button class="btn-primary-custom" style="font-size:0.8rem;" onclick="app.selectPatient(${p.id})">
-                            <i class="fas fa-folder-open"></i> Ouvrir le dossier complet
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        const scoresEl = document.getElementById('psy-scores-area');
-        const si = p.score_initial;
-        scoresEl.innerHTML = ['GAD7', 'BAI', 'BDI'].map(key => {
-            const scale = SCALES[key];
-            const score = si[key] || 0;
-            const interp = this.interpretScale(key, score);
-            return `
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-                    <div>
-                        <div style="font-weight:600;font-size:0.84rem;">${scale.abbr}</div>
-                        <div style="font-size:0.72rem;color:var(--text-muted);">Score initial</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <span style="font-size:1.1rem;font-weight:800;color:var(--primary);">${score}</span><span style="font-size:0.72rem;color:var(--text-muted);">/${scale.maxScore}</span>
-                        <div><span class="gad-score-pill ${interp.color}" style="font-size:0.65rem;">${interp.label}</span></div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        const sessEl = document.getElementById('psy-session-list');
-        const pct = Math.round((p.completedSessions.length / p.totalSessions) * 100);
-        sessEl.innerHTML = `
-            <div style="text-align:center;margin-bottom:10px;">
-                <div style="font-size:1.8rem;font-weight:900;color:var(--primary);">${p.completedSessions.length}<span style="font-size:0.85rem;opacity:0.7;">/${p.totalSessions}</span></div>
-                <div style="font-size:0.75rem;color:var(--text-muted);">séances réalisées</div>
-            </div>
-            <div class="progress-bar-track" style="margin-bottom:10px;"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
-            <div style="font-size:0.78rem;color:var(--text-muted);text-align:center;">
-                Prochaine séance : <strong style="color:var(--primary);">Séance ${p.currentSession}</strong>
-            </div>
-            <div style="text-align:center;margin-top:10px;">
-                <button class="btn-ghost" style="font-size:0.78rem;" onclick="app.showPanel('session', ${p.currentSession})">
-                    <i class="fas fa-play-circle"></i> Démarrer la séance ${p.currentSession}
-                </button>
-            </div>
-        `;
-
-        this.renderConsultation(p, 'psy-consultation-card', 'psy-consultation-area');
-        this.renderObjectifs(p, 'psy-objectifs-card', 'psy-objectifs-area');
-    },
 
     /* =================== DOSSIER =================== */
     renderDossier(view) {
@@ -368,32 +180,6 @@ const app = {
 
         view.innerHTML = document.getElementById('tpl-dossier').innerHTML;
         const sessions = simulationData.getSessionsForPatient(p);
-
-        document.getElementById('dossier-header-content').innerHTML = `
-            <div class="d-flex align-items-center gap-4 flex-wrap">
-                <div style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:white;flex-shrink:0;">
-                    ${this.initials(p.name)}
-                </div>
-                <div style="flex:1;min-width:220px;">
-                    <h4 style="margin:0 0 4px;font-weight:800;">${p.name}</h4>
-                    <p style="margin:0 0 8px;opacity:0.85;font-size:0.88rem;">${p.age} ans &bull; ${p.sexe === 'F' ? 'Femme' : 'Homme'} &bull; ${p.profession}</p>
-                    <div style="font-size:0.82rem;opacity:0.8;line-height:1.4;"><i class="fas fa-notes-medical me-1"></i>${p.motif}</div>
-                    <div style="margin-top:10px;">${p.diagnoses.map(d => `<span style="background:rgba(255,255,255,0.2);color:white;border-radius:20px;padding:3px 12px;font-size:0.72rem;font-weight:700;margin-right:6px;">${d}</span>`).join('')}</div>
-                </div>
-                <div style="text-align:right;flex-shrink:0;min-width:220px;">
-                    <div style="font-size:2.1rem;font-weight:900;">${p.completedSessions.length}<span style="font-size:0.95rem;opacity:0.8;">/${p.totalSessions}</span></div>
-                    <div style="font-size:0.78rem;opacity:0.8;margin-bottom:6px;">séances prévues</div>
-                    <div class="d-flex gap-2" style="justify-content:flex-end;">
-                        <button class="btn-primary-custom" style="font-size:0.78rem;padding:6px 14px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);" onclick="app.addSession()">
-                            <i class="fas fa-plus"></i> Ajouter séance
-                        </button>
-                        <button class="btn-ghost" style="font-size:0.78rem;padding:6px 14px;color:white;border:1px solid rgba(255,255,255,0.3);" onclick="app.removeSession()">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
 
         document.getElementById('dossier-progress-badge').textContent = `${Math.round((p.completedSessions.length / p.totalSessions) * 100)}%`;
 
@@ -471,7 +257,7 @@ const app = {
                     <div style="margin-left:28px;margin-bottom:4px;">
                         <button class="btn-ghost" style="font-size:0.68rem;padding:2px 10px;color:#8b5cf6;border:1px dashed #c4b5fd;border-radius:8px;"
                                 onclick="event.stopPropagation(); app.addIntermediateSession(${s.no})">
-                            <i class="fas fa-plus me-1"></i>Ajouter séance intermédiaire
+                            <i class="fas fa-plus me-1"></i>Ajouter s\u00e9ance interm\u00e9diaire
                         </button>
                     </div>
                 `;
@@ -482,28 +268,8 @@ const app = {
 
         timeline.innerHTML = timelineHtml;
 
-        const si = p.score_initial;
-        document.getElementById('dossier-scores-initial').innerHTML = `
-            <div class="row g-2">
-                ${['GAD7', 'BAI', 'BDI'].map(key => {
-                    const scale = SCALES[key];
-                    const score = si[key] || 0;
-                    const interp = this.interpretScale(key, score);
-                    return `
-                        <div class="col-4 text-center">
-                            <div style="font-size:1.6rem;font-weight:900;color:var(--primary);">${score}</div>
-                            <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">${scale.abbr}</div>
-                            <span class="gad-score-pill ${interp.color}" style="margin-top:4px;display:inline-flex;font-size:0.68rem;">${interp.label}</span>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        `;
-
-        this.renderPatientChart(p);
-        this.renderDossierExercisesTab(p);
+        // Only render consultation (the only extra section kept)
         this.renderConsultation(p, 'dossier-consultation-card', 'dossier-consultation-area');
-        this.renderObjectifs(p, 'dossier-objectifs-card', 'dossier-objectifs-area');
     },
 
     async addIntermediateSession(afterSessionNo) {
@@ -767,14 +533,25 @@ const app = {
 
         // Auto-save current exercise data if it's a form type
         if (ex && area && !['info', 'model'].includes(ex.type)) {
-            const data = ExerciseRenderer._collectFormData(ex, area);
-            ExerciseStorage.save(pid, currentExId, data);
+            // daily_log is a table with repeating rows, so we must save it row-wise.
+            if (ex.type === 'daily_log') {
+                ExerciseRenderer._saveDailyLog(ex, pid, area);
+            } else {
+                const data = ExerciseRenderer._collectFormData(ex, area);
+                ExerciseStorage.save(pid, currentExId, data);
+            }
         } else if (ex) {
             // For info/model types, mark as viewed
             ExerciseStorage.save(pid, currentExId, { _viewed: true });
         }
 
-        this.showToast(`Exercice « ${ex?.title || currentExId} » complété ✓`, 'success');
+        const status = ExerciseStorage.getStatus(pid, currentExId);
+        if (status === 'completed') {
+            this.showToast(`Exercice « ${ex?.title || currentExId} » complété ✓`, 'success');
+        } else {
+            this.showToast(`Avancement de « ${ex?.title || currentExId} » sauvegardé.`, 'info');
+        }
+        
         this.selectSessionExercise(nextExId);
     },
 
@@ -785,19 +562,74 @@ const app = {
 
         // Auto-save current exercise data
         if (ex && area && !['info', 'model'].includes(ex.type)) {
-            const data = ExerciseRenderer._collectFormData(ex, area);
-            ExerciseStorage.save(pid, currentExId, data);
+            if (ex.type === 'daily_log') {
+                ExerciseRenderer._saveDailyLog(ex, pid, area);
+            } else {
+                const data = ExerciseRenderer._collectFormData(ex, area);
+                ExerciseStorage.save(pid, currentExId, data);
+            }
         } else if (ex) {
             ExerciseStorage.save(pid, currentExId, { _viewed: true });
         }
 
-        this.showToast(`Tous les exercices de cette séance sont terminés !`, 'success');
+        const status = ExerciseStorage.getStatus(pid, currentExId);
+        if (status === 'completed') {
+            this.showToast(`Exercice « ${ex?.title || currentExId} » complété ✓`, 'success');
+        } else {
+            this.showToast(`Avancement de « ${ex?.title || currentExId} » sauvegardé.`, 'info');
+        }
+
         this.state.sessionExerciseId = null;
         const s = this.state.activeSession;
         if (s) {
             this.renderSessionExercises(s);
             this.renderSessionMainArea(s);
         }
+    },
+    
+    _validateExerciseData(ex, data, pid = 1) {
+        if (!data) return false;
+        
+        // Custom logic based on exercise type
+        if (ex.type === 'two_columns') {
+            return !!(data.colA && data.colB && data.colA.trim() !== '' && data.colB.trim() !== '');
+        } 
+        
+        if (ex.type === 'structured_form') {
+            for (const field of ex.fields) {
+                if (!data[field.key] || data[field.key].toString().trim() === '') return false;
+            }
+            return true;
+        }
+        
+        if (ex.type === 'free_list') {
+            return data.items && data.items.length > 0;
+        }
+        
+        if (ex.type === 'problem_solving') {
+            for (const field of ex.fields) {
+                if (!data[field.key] || data[field.key].toString().trim() === '') return false;
+            }
+            // Require at least one solution
+            return data.sol_0 && data.sol_0.trim() !== ''; 
+        }
+
+        if (ex.type === 'daily_log') {
+             // For daily log, we need at least one row filled out. 
+             // We check the storage directly because rows are saved individually
+             return ExerciseStorage.getEntryCount(pid, ex.id) > 0;
+        }
+
+        if (ex.type === 'exposure_sheet') {
+             return !!(data.theme && data.niveau_max !== undefined);
+        }
+        
+        if (ex.type === 'goals_form') {
+             return data.objectif_0 && data.objectif_0.trim() !== '' && data.moyens_0 && data.moyens_0.trim() !== '';
+        }
+
+        // For checklist/checklist_examples, any configuration is technically valid (could check 0 boxes).
+        return true;
     },
 
     renderSessionMainArea(s) {
@@ -1272,8 +1104,15 @@ const app = {
 
     /* =================== TOAST =================== */
     showToast(message, type = 'info') {
-        const stack = document.getElementById('toast-stack');
-        if (!stack) return;
+        // Some trouble pages may not include the toast container immediately.
+        // Create it on-demand to avoid silent failures.
+        let stack = document.getElementById('toast-stack');
+        if (!stack) {
+            stack = document.createElement('div');
+            stack.id = 'toast-stack';
+            stack.className = 'toast-stack';
+            document.body.appendChild(stack);
+        }
         const id = 'toast-' + Date.now();
         const icons = { success: 'fa-check-circle', warning: 'fa-triangle-exclamation', danger: 'fa-circle-xmark', info: 'fa-circle-info' };
         const colors = { success: 'var(--success)', warning: 'var(--warning)', danger: 'var(--danger)', info: 'var(--primary)' };
