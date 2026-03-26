@@ -476,7 +476,12 @@ const EXERCISES = [
 ];
 
 function getExerciseById(id) {
-    return EXERCISES.find(e => e.id === id) || null;
+    let ex = EXERCISES.find(e => e.id === id);
+    if (ex) return ex;
+    if (window.app && app.state && app.state.selectedPatient && app.state.selectedPatient.customExercises) {
+        return app.state.selectedPatient.customExercises[id] || null;
+    }
+    return null;
 }
 
 const PROTOCOL_TOOL_MAP = {
@@ -501,24 +506,34 @@ const PROTOCOL_TOOL_MAP = {
 };
 
 function getExercisesForSession(sessionNo) {
-    // For intermediate sessions (e.g. 2.1), use the parent session number
     const lookupNo = (sessionNo !== Math.floor(sessionNo)) ? Math.floor(sessionNo) : sessionNo;
+    let theoreticalIds = [];
 
     if (window.PROTOCOL) {
         const phase = window.PROTOCOL.phases.find(p => p.recommended_sessions.includes(lookupNo));
         if (phase) {
             const requestedTools = [...(phase.worksheets || []), ...(phase.guides || [])];
-            let mappedExIds = [];
             requestedTools.forEach(tool => {
                 if (PROTOCOL_TOOL_MAP[tool]) {
-                    mappedExIds = mappedExIds.concat(PROTOCOL_TOOL_MAP[tool]);
+                    theoreticalIds = theoreticalIds.concat(PROTOCOL_TOOL_MAP[tool]);
                 }
             });
-            return EXERCISES.filter(e => mappedExIds.includes(e.id));
         }
+    } else {
+        theoreticalIds = EXERCISES.filter(e => e.defaultSessions.includes(lookupNo)).map(e => e.id);
     }
-    // Fallback to hardcoded list if no protocol is loaded
-    return EXERCISES.filter(e => e.defaultSessions.includes(lookupNo));
+    
+    // Add dynamic added exercises
+    let added = [];
+    if (window.app && app.state && app.state.selectedPatient && app.state.selectedPatient.addedExercises) {
+        added = app.state.selectedPatient.addedExercises[sessionNo] || [];
+    }
+
+    // Psychologue library: exercises explicitly marked as always available
+    const always = EXERCISES.filter(e => e.alwaysAvailable === true).map(e => e.id);
+
+    const allIds = [...new Set([...theoreticalIds, ...added, ...always])];
+    return allIds.map(id => getExerciseById(id)).filter(e => e);
 }
 
 function getExercisesByCategory(catId) {

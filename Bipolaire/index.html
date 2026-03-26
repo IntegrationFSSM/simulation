@@ -87,12 +87,13 @@
 <!-- DOSSIER PATIENT -->
 <template id="tpl-dossier">
 <div>
-    <div class="dossier-header mb-4" id="dossier-header-content"></div>
-
     <!-- Consultation médicale -->
     <div class="panel-card mb-3" id="dossier-consultation-card" style="display:none;">
-        <div class="panel-card-header">
-            <h6><i class="fas fa-user-doctor me-2" style="color:#10b981;"></i>Consultation médicale d'orientation</h6>
+        <div class="panel-card-header d-flex justify-content-between align-items-center"
+             style="cursor:pointer;"
+             onclick="const b = document.getElementById('dossier-consultation-area'); const i = this.querySelector('.fa-chevron-down'); if(b.style.display==='none'){b.style.display='block';i.style.transform='rotate(0deg)';app.state.consultationOpen=true;}else{b.style.display='none';i.style.transform='rotate(-90deg)';app.state.consultationOpen=false;}">
+            <h6 class="m-0"><i class="fas fa-user-doctor me-2" style="color:#10b981;"></i>Consultation médicale d'orientation</h6>
+            <i class="fas fa-chevron-down" style="transition:transform 0.2s; color:var(--text-muted);"></i>
         </div>
         <div class="panel-card-body" id="dossier-consultation-area"></div>
     </div>

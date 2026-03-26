@@ -12,7 +12,8 @@ const app = {
         exerciseCategory: null,
         sessionExerciseId: null,
         chartInstance: null,
-        scaleAnswers: {}
+        scaleAnswers: {},
+        navigationHistory: []
     },
 
     async init() {
@@ -35,6 +36,9 @@ const app = {
                     notes: p.notes || {},
                     score_initial: p.score_initial || defaults.score_initial || {},
                     intermediateSessions: p.intermediateSessions || [],
+                    // Preserve custom tools/exercises created by the psychologue
+                    customExercises: p.customExercises || {},
+                    addedExercises: p.addedExercises || {},
                 }));
             }
         } catch (e) { console.error('Erreur chargement patients:', e); }
@@ -58,7 +62,7 @@ const app = {
                 p.intermediateSessions = progress.intermediate_sessions || [];
                 if (progress.session_scores) p.sessionScores = progress.session_scores;
                 if (progress.notes) p.notes = progress.notes;
-            }
+             }
         } catch (e) { console.error('Erreur chargement progression:', e); }
     },
 
@@ -119,7 +123,11 @@ const app = {
     },
 
     /* =================== NAVIGATION =================== */
-    showPanel(panelId, sessionNo = null) {
+    showPanel(panelId, sessionNo = null, isBack = false) {
+        if (!isBack && (this.state.activePanel !== panelId || this.state.activeSession?.no !== sessionNo)) {
+            this.state.navigationHistory.push({ panel: this.state.activePanel, sessionNo: this.state.activeSession?.no });
+        }
+        
         this.state.activePanel = panelId;
         if (sessionNo) {
             const p = this.state.selectedPatient;
@@ -136,6 +144,15 @@ const app = {
         this.updateSidebarActive(panelId);
     },
 
+    goBack() {
+        if (this.state.navigationHistory.length > 0) {
+            const prev = this.state.navigationHistory.pop();
+            this.showPanel(prev.panel, prev.sessionNo, true);
+        } else {
+            this.showPanel('dossier', null, true);
+        }
+    },
+
     updateSidebarActive(panelId) {
         document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
         const bc = document.getElementById('breadcrumb-current');
@@ -148,6 +165,11 @@ const app = {
         }
     },
 
+    togglePhase(phaseId, isOpen) {
+        if (!this.state.openPhases) this.state.openPhases = {};
+        this.state.openPhases[phaseId] = isOpen;
+    },
+
     async selectPatient(id) {
         const p = simulationData.patients.find(p => p.id === id);
         if (p) {
@@ -155,6 +177,7 @@ const app = {
         }
         this.state.selectedPatient = p;
         this.state.activeSession = null;
+        this.state.navigationHistory = []; // Reset history on patient change
         this.showPanel('dossier');
     },
 
@@ -200,6 +223,12 @@ const app = {
         }
         allSessions.sort((a, b) => a.no - b.no);
 
+        // Compute dynamic indexing for display 1, 2, 3...
+        let displayIndex = 1;
+        allSessions.forEach(s => {
+            s.displayIndex = displayIndex++;
+        });
+
         const buildSessionHtml = (s) => {
             const isDone = p.completedSessions.includes(s.no);
             const isCurrent = !s.isIntermediate && s.no === p.currentSession;
@@ -215,14 +244,16 @@ const app = {
             }
 
             if (s.isIntermediate) {
-                label = `S\u00e9ance ${s.parentSession} \u2014 Interm\u00e9diaire`;
+                label = `S\u00e9ance ${s.displayIndex}`;
+                // Optional: keep an indicator that it's an intermediate mapping
                 dotContent = `<i class="fas fa-rotate" style="font-size:0.6rem;"></i>`;
                 badgeHtml = isDone
                     ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Termin\u00e9e</span>'
                     : '<span class="badge" style="background:#8b5cf6;color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Interm\u00e9diaire</span>';
+                badgeHtml += `<button class="btn-sm-icon ms-2 no-print" title="Supprimer cette s\u00e9ance" onclick="event.stopPropagation(); app.deleteIntermediateSession(${s.no}, ${s.parentSession})"><i class="fas fa-trash" style="color:var(--danger);font-size:0.75rem;"></i></button>`;
             } else {
-                label = `S\u00e9ance ${s.no}`;
-                dotContent = isDone ? '<i class="fas fa-check" style="font-size:0.65rem;"></i>' : s.no;
+                label = `S\u00e9ance ${s.displayIndex}`;
+                dotContent = isDone ? '<i class="fas fa-check" style="font-size:0.65rem;"></i>' : s.displayIndex;
                 badgeHtml = isDone
                     ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Termin\u00e9e</span>'
                     : isCurrent
@@ -251,8 +282,8 @@ const app = {
                 </div>
             `;
 
-            // Add "+ Intermédiaire" button after completed regular sessions
-            if (!s.isIntermediate && isDone) {
+            // Add "+ Intermédiaire" button after any regular session (completed or not)
+            if (!s.isIntermediate) {
                 row += `
                     <div style="margin-left:28px;margin-bottom:4px;">
                         <button class="btn-ghost" style="font-size:0.68rem;padding:2px 10px;color:#8b5cf6;border:1px dashed #c4b5fd;border-radius:8px;"
@@ -275,13 +306,17 @@ const app = {
 
                 if (phaseSessions.length === 0) return;
 
-                const isActive = phase.recommended_sessions.includes(Math.floor(p.currentSession));
+                if (!app.state.openPhases) app.state.openPhases = {};
+                let isActive = app.state.openPhases[phase.phase_name];
+                if (isActive === undefined) {
+                    isActive = phase.recommended_sessions.includes(Math.floor(p.currentSession));
+                }
 
                 timelineHtml += `
                     <div class="phase-group mb-3" style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff;">
                         <div class="phase-header d-flex justify-content-between align-items-center p-3" 
                              style="cursor:pointer; background: ${isActive ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-secondary)'}; border-bottom: 1px solid var(--border);"
-                             onclick="const body = this.nextElementSibling; const icon = this.querySelector('.fa-chevron-down'); if (body.style.display === 'none') { body.style.display = 'block'; icon.style.transform = 'rotate(0deg)'; } else { body.style.display = 'none'; icon.style.transform = 'rotate(-90deg)'; }">
+                             onclick="const body = this.nextElementSibling; const icon = this.querySelector('.fa-chevron-down'); if (body.style.display === 'none') { body.style.display = 'block'; icon.style.transform = 'rotate(0deg)'; app.togglePhase('${phase.phase_name.replace(/'/g, "\\'")}', true); } else { body.style.display = 'none'; icon.style.transform = 'rotate(-90deg)'; app.togglePhase('${phase.phase_name.replace(/'/g, "\\'")}', false); }">
                             <h6 class="m-0" style="font-size:0.95rem; color: ${isActive ? 'var(--primary)' : 'var(--text)'}; font-weight:700;">
                                 <i class="fas fa-layer-group me-2"></i>${phase.phase_name}
                             </h6>
@@ -300,6 +335,7 @@ const app = {
         timeline.innerHTML = timelineHtml;
 
         // Only render consultation (the only extra section kept)
+        this.renderConsultation(p, 'dossier-consultation-card', 'dossier-consultation-area');
         this.renderConsultation(p, 'dossier-consultation-card', 'dossier-consultation-area');
     },
 
@@ -417,14 +453,26 @@ const app = {
         document.getElementById('session-badge').textContent = `#${s.no}`;
 
         const infoArea = document.getElementById('session-info-area');
-        const exercises = getExercisesForSession(s.no);
+        const isIntermediate = s.no !== Math.floor(s.no);
+        const infoParentNo = isIntermediate ? Math.floor(s.no) : s.no;
+        let infoExercises = getExercisesForSession(infoParentNo);
+
+        // Apply same filtering as sidebar for intermediate sessions
+        if (isIntermediate && p) {
+            const parentCompleted = p.completedSessions.includes(infoParentNo);
+            if (!parentCompleted) {
+                const pid = p.id || 1;
+                infoExercises = infoExercises.filter(ex => !this.isExerciseCompletedAnywhere(pid, ex.id, infoParentNo));
+            }
+        }
+
         infoArea.innerHTML = `
             <div style="font-size:0.84rem;margin-bottom:12px;">
                 <i class="fas fa-user me-1 text-primary-c"></i>
                 <strong>${p?.name || '—'}</strong>
             </div>
             <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">
-                <i class="fas fa-clipboard-list me-1"></i> ${exercises.length} exercice${exercises.length > 1 ? 's' : ''} disponible${exercises.length > 1 ? 's' : ''}
+                <i class="fas fa-clipboard-list me-1"></i> ${infoExercises.length} exercice${infoExercises.length > 1 ? 's' : ''} disponible${infoExercises.length > 1 ? 's' : ''}
             </div>
             <div class="divider"></div>
             <div style="font-size:0.78rem;color:var(--text-muted);">
@@ -455,12 +503,20 @@ const app = {
         const parentNo = isIntermediate ? Math.floor(s.no) : s.no;
         let sessionExercises = getExercisesForSession(parentNo);
         const pid = this.state.selectedPatient?.id || 1;
+        const p = this.state.selectedPatient;
 
-        // For intermediate sessions, filter to only undone exercises across all scopes globally
-        if (isIntermediate) {
-            sessionExercises = sessionExercises.filter(ex => {
-                return !this.isExerciseCompletedAnywhere(pid, ex.id, parentNo);
-            });
+        // For intermediate sessions, adapt exercises based on parent session status
+        if (isIntermediate && p) {
+            const parentCompleted = p.completedSessions.includes(parentNo);
+            if (parentCompleted) {
+                // Parent session was completed → show ALL exercises (repeat)
+                // No filtering needed, keep the full list
+            } else {
+                // Parent session is incomplete → show only remaining undone exercises
+                sessionExercises = sessionExercises.filter(ex => {
+                    return !this.isExerciseCompletedAnywhere(pid, ex.id, parentNo);
+                });
+            }
         }
 
         const optionHtml = (ex) => {
@@ -468,6 +524,10 @@ const app = {
             const mark = status === 'completed' ? ' \u2713' : status === 'in_progress' ? ' \u25CF' : '';
             return `<option value="${ex.id}" ${this.state.sessionExerciseId === ex.id ? 'selected' : ''}>${ex.ref} ${ex.title}${mark}</option>`;
         };
+
+        // Separate always-available exercises (psychologue library) for clarity
+        const alwaysExercises = sessionExercises.filter(ex => ex && ex.alwaysAvailable === true);
+        const regularExercises = sessionExercises.filter(ex => ex && ex.alwaysAvailable !== true);
 
         const sessionLabel = isIntermediate
             ? `S\u00e9ance ${parentNo} \u2014 Interm\u00e9diaire`
@@ -478,8 +538,13 @@ const app = {
                 <select class="form-select form-select-sm" id="session-exercise-select" onchange="app.selectSessionExercise(this.value)">
                     <option value="">\u2014 Choisir un exercice \u2014</option>
                     <optgroup label="Exercices de cette s\u00e9ance">
-                        ${sessionExercises.map(ex => optionHtml(ex)).join('')}
+                        ${regularExercises.map(ex => optionHtml(ex)).join('')}
                     </optgroup>
+                    ${alwaysExercises.length ? `
+                        <optgroup label="Biblioth\u00e8que psychologue">
+                            ${alwaysExercises.map(ex => optionHtml(ex)).join('')}
+                        </optgroup>
+                    ` : ''}
                 </select>
             </div>
             ${isIntermediate && sessionExercises.length === 0 ? `
@@ -490,7 +555,7 @@ const app = {
             ` : ''}
             ${sessionExercises.length ? `
                 <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px;padding-left:2px;">
-                    ${sessionLabel}${isIntermediate ? ' \u2014 exercices restants' : ''}
+                    ${sessionLabel}${isIntermediate ? (p && p.completedSessions.includes(parentNo) ? ' \u2014 reprise compl\u00e8te' : ' \u2014 exercices restants') : ''}
                 </div>
             ` : ''}
             ${sessionExercises.map(ex => {
@@ -511,6 +576,12 @@ const app = {
                     </div>
                 `;
             }).join('')}
+
+            <div class="mt-3 pt-3 border-top" style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn-ghost btn-sm w-100" style="color:var(--accent);" onclick="app.openCustomExerciseBuilder()">
+                    <i class="fas fa-pencil-ruler me-1"></i> Créer un exercice personnalisé
+                </button>
+            </div>
         `;
     },
 
@@ -518,17 +589,11 @@ const app = {
         const area = document.getElementById('session-scales-area');
         if (!area) return;
         
-        let scaleKeys = ['GAD7', 'BAI', 'BDI'];
-        if (window.PROTOCOL) {
-            const phase = window.PROTOCOL.phases.find(p => p.recommended_sessions.includes(s.no));
-            scaleKeys = [];
-            if (phase && phase.assessments) {
-                scaleKeys = phase.assessments.map(a => a.tool_id);
-            }
-        }
+        // Use all available scales for the current module universally
+        const scaleKeys = Object.keys(SCALES);
         
         if (scaleKeys.length === 0) {
-            area.innerHTML = '<div style="font-size:0.75rem;color:var(--text-muted);padding:8px 0;text-align:center;">Aucun questionnaire médical prévu pour cette séance selon le protocole clinique.</div>';
+            area.innerHTML = '<div style="font-size:0.75rem;color:var(--text-muted);padding:8px 0;text-align:center;">Aucune échelle clinique définie.</div>';
             return;
         }
 
@@ -539,10 +604,15 @@ const app = {
             return `
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
                     <span style="font-size:0.82rem;font-weight:600;">${scale.abbr}</span>
-                    ${score !== undefined
-                        ? `<span class="gad-score-pill ${this.interpretScale(key, score).color}" style="font-size:0.68rem;">${score}</span>`
-                        : `<button class="btn-ghost" style="font-size:0.72rem;padding:3px 8px;" onclick="app.openScaleModal('${key}')"><i class="fas fa-pen"></i> Passer</button>`
-                    }
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        ${score !== undefined
+                            ? `<span class="gad-score-pill ${this.interpretScale(key, score).color}" style="font-size:0.68rem;padding:3px 8px;">${score}</span>`
+                            : ''
+                        }
+                        <button class="btn-ghost" style="font-size:0.72rem;padding:3px 8px;color:var(--primary);" onclick="app.openScaleModal('${key}')">
+                            <i class="fas fa-pen"></i> ${score !== undefined ? 'Repasser' : 'Passer'}
+                        </button>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -644,6 +714,15 @@ const app = {
             return data.items && data.items.length > 0;
         }
         
+        if (ex.type === 'custom') {
+            if (!ex.questions || ex.questions.length === 0) return true;
+            for (let i = 0; i < ex.questions.length; i++) {
+                const val = data[`q_${i}`];
+                if (val === undefined || val === null || val.toString().trim() === '') return false;
+            }
+            return true;
+        }
+        
         if (ex.type === 'problem_solving') {
             // Check basic fields
             for (const field of ex.fields || []) {
@@ -711,12 +790,19 @@ const app = {
         const parentNo = isIntermediate ? Math.floor(s.no) : s.no;
         let sessionExercises = getExercisesForSession(parentNo);
         const pid = this.state.selectedPatient?.id || 1;
+        const p = this.state.selectedPatient;
 
-        // For intermediate sessions, filter to only undone exercises across all scopes globally
-        if (isIntermediate) {
-            sessionExercises = sessionExercises.filter(ex => {
-                return !this.isExerciseCompletedAnywhere(pid, ex.id, parentNo);
-            });
+        // For intermediate sessions, adapt exercises based on parent session status
+        if (isIntermediate && p) {
+            const parentCompleted = p.completedSessions.includes(parentNo);
+            if (parentCompleted) {
+                // Parent session was completed → show ALL exercises (repeat)
+            } else {
+                // Parent session is incomplete → show only remaining undone exercises
+                sessionExercises = sessionExercises.filter(ex => {
+                    return !this.isExerciseCompletedAnywhere(pid, ex.id, parentNo);
+                });
+            }
         }
 
         let warningBanner = '';
@@ -992,6 +1078,17 @@ const app = {
         const area = document.getElementById(areaId);
         if (!card || !area || !p.consultation) return;
 
+        card.style.display = '';
+        if (app.state.consultationOpen === false) {
+            area.style.display = 'none';
+            const icon = card.querySelector('.fa-chevron-down');
+            if(icon) icon.style.transform = 'rotate(-90deg)';
+        } else {
+            area.style.display = 'block';
+            const icon = card.querySelector('.fa-chevron-down');
+            if(icon) icon.style.transform = 'rotate(0deg)';
+        }
+
         const c = p.consultation;
         const dateStr = c.dateConsultation ? new Date(c.dateConsultation).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
 
@@ -1003,6 +1100,7 @@ const app = {
                 </div>
                 <div style="flex:1;min-width:0;">
                     <div style="font-weight:700;font-size:0.92rem;">${c.medecinReferent}</div>
+
                     <div style="font-size:0.78rem;color:var(--text-muted);">${c.specialite}</div>
                     <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">
                         <i class="fas fa-calendar me-1"></i>${dateStr} &bull; <i class="fas fa-location-dot me-1"></i>${c.lieuConsultation}
@@ -1164,6 +1262,35 @@ const app = {
         this.showToast('Notes cliniques sauvegardées.', 'success');
     },
 
+    async deleteIntermediateSession(sessionNo, parentNo) {
+        if (!confirm('Voulez-vous vraiment supprimer cette s\u00e9ance interm\u00e9diaire ? Toute donnée associée sera perdue.')) return;
+        const p = this.state.selectedPatient;
+        if (!p) return;
+        p.intermediateSessions = p.intermediateSessions.filter(i => i.session_number !== sessionNo);
+        p.completedSessions = p.completedSessions.filter(n => n !== sessionNo);
+        await LocalAPI.savePatientProgress(p);
+        this.render();
+    },
+
+    async addDynamicExercise(exerciseId) {
+        if (!exerciseId) return;
+        const p = this.state.selectedPatient;
+        const s = this.state.activeSession;
+        if (!p || !s) return;
+        
+        const parentNo = Math.floor(s.no);
+        if (!p.addedExercises) p.addedExercises = {};
+        if (!p.addedExercises[parentNo]) p.addedExercises[parentNo] = [];
+        
+        if (!p.addedExercises[parentNo].includes(exerciseId)) {
+            p.addedExercises[parentNo].push(exerciseId);
+            await LocalAPI.savePatientProgress(p);
+            this.showToast("Exercice ou test ajouté à l'agenda.", "success");
+            this.render(); 
+        } else {
+            this.showToast("Cet outil est déjà dans l'agenda de cette séance.", "warning");
+        }
+    },
     async completeCurrentSession() {
         const p = this.state.selectedPatient;
         const s = this.state.activeSession;
@@ -1208,6 +1335,109 @@ const app = {
         return str.length > max ? str.substring(0, max) + '…' : str;
     },
 
+    /* =================== CUSTOM EXERCISE BUILDER =================== */
+    openCustomExerciseBuilder() {
+        const root = document.getElementById('modal-root');
+        if (!root) return;
+        root.innerHTML = `
+            <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1050;display:flex;align-items:center;justify-content:center;padding:16px;">
+                <div style="background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);width:100%;max-width:600px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+                    <div style="padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                        <h5 style="margin:0;font-weight:800;"><i class="fas fa-pencil-ruler me-2 text-primary-c"></i>Créer un exercice personnalisé</h5>
+                        <button class="btn-sm-icon" onclick="document.getElementById('modal-root').innerHTML=''"><i class="fas fa-xmark"></i></button>
+                    </div>
+                    <div style="padding:1.2rem 1.4rem;overflow-y:auto;flex:1;">
+                        <div class="mb-3">
+                            <label style="font-size:0.82rem;font-weight:700;color:var(--text-muted);">Titre de l'exercice *</label>
+                            <input type="text" id="custom-ex-title" class="form-control form-control-sm mt-1" placeholder="Ex: Fiche de suivi du sommeil" />
+                        </div>
+                        <div class="mb-3">
+                            <label style="font-size:0.82rem;font-weight:700;color:var(--text-muted);">Description / Instructions</label>
+                            <textarea id="custom-ex-desc" class="form-control form-control-sm mt-1" rows="2" placeholder="Expliquez les consignes pour le patient..."></textarea>
+                        </div>
+                        <div style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:0.82rem;font-weight:700;color:var(--text-muted);">Questions</span>
+                            <button class="btn-ghost" style="font-size:0.75rem;color:var(--primary);" onclick="app.addCustomQuestion()">
+                                <i class="fas fa-plus"></i> Ajouter une question
+                            </button>
+                        </div>
+                        <div id="custom-ex-questions" style="display:flex;flex-direction:column;gap:8px;"></div>
+                    </div>
+                    <div style="padding:1rem 1.4rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
+                        <button class="btn-ghost" onclick="document.getElementById('modal-root').innerHTML=''">Annuler</button>
+                        <button class="btn-primary-custom" onclick="app.saveCustomExercise()"><i class="fas fa-save me-1"></i>Créer & Ajouter à la séance</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        // Add first question automatically
+        this.addCustomQuestion();
+    },
+
+    _customQuestionCount: 0,
+    addCustomQuestion() {
+        const container = document.getElementById('custom-ex-questions');
+        if (!container) return;
+        const idx = ++this._customQuestionCount;
+        const div = document.createElement('div');
+        div.id = `cq-${idx}`;
+        div.style.cssText = 'background:var(--surface-2);border-radius:var(--r-sm);padding:10px 12px;display:flex;flex-direction:column;gap:6px;';
+        div.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.75rem;font-weight:700;color:var(--primary);">Question ${idx}</span>
+                <button class="btn-sm-icon" onclick="document.getElementById('cq-${idx}').remove()" title="Supprimer"><i class="fas fa-trash" style="color:var(--danger);font-size:0.7rem;"></i></button>
+            </div>
+            <input type="text" class="form-control form-control-sm cq-text" placeholder="Libellé de la question..." />
+            <div style="display:flex;align-items:center;gap:8px;">
+                <label style="font-size:0.75rem;font-weight:600;color:var(--text-muted);white-space:nowrap;">Type :</label>
+                <select class="form-select form-select-sm cq-type" style="font-size:0.75rem;max-width:200px;">
+                    <option value="text">Réponse libre (texte)</option>
+                    <option value="likert5">Likert 0–5</option>
+                    <option value="likert10">Likert 0–10</option>
+                    <option value="yesno">Oui / Non</option>
+                </select>
+            </div>
+        `;
+        container.appendChild(div);
+    },
+
+    async saveCustomExercise() {
+        const title = document.getElementById('custom-ex-title')?.value.trim();
+        const desc = document.getElementById('custom-ex-desc')?.value.trim();
+        if (!title) { this.showToast('Le titre est obligatoire.', 'warning'); return; }
+
+        const questions = [];
+        document.querySelectorAll('#custom-ex-questions > div').forEach(div => {
+            const text = div.querySelector('.cq-text')?.value.trim();
+            const type = div.querySelector('.cq-type')?.value || 'text';
+            if (text) questions.push({ text, type });
+        });
+
+        if (questions.length === 0) { this.showToast('Ajoutez au moins une question.', 'warning'); return; }
+
+        const p = this.state.selectedPatient;
+        const s = this.state.activeSession;
+        if (!p || !s) return;
+
+        const exerciseId = 'custom_' + Date.now();
+        const customEx = { id: exerciseId, ref: 'Perso', category: 'custom', title, description: desc || '', questions, type: 'custom', isCustom: true, createdAt: new Date().toISOString() };
+
+        if (!p.customExercises) p.customExercises = {};
+        p.customExercises[exerciseId] = customEx;
+
+        const parentNo = Math.floor(s.no);
+        if (!p.addedExercises) p.addedExercises = {};
+        if (!p.addedExercises[parentNo]) p.addedExercises[parentNo] = [];
+        if (!p.addedExercises[parentNo].includes(exerciseId)) {
+            p.addedExercises[parentNo].push(exerciseId);
+        }
+
+        await LocalAPI.savePatientProgress(p);
+        document.getElementById('modal-root').innerHTML = '';
+        this.showToast(`Exercice "${title}" créé et ajouté à l'agenda.`, 'success');
+        this.render();
+    },
+
     /* =================== TOAST =================== */
     showToast(message, type = 'info') {
         // Some trouble pages may not include the toast container immediately.
@@ -1237,5 +1467,9 @@ const app = {
         setTimeout(() => toast.remove(), 5000);
     }
 };
+
+// Expose app for registry helpers (custom exercises / added exercises).
+// Some helper files check `window.app` explicitly.
+window.app = app;
 
 window.onload = () => app.init();

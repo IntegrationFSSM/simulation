@@ -101,31 +101,31 @@ const simulationData = {
                     numero: 1,
                     titre: "Évaluation et Alliance Thérapeutique",
                     description: "Créer une base solide, comprendre l'historique de la maladie (Lifechart).",
-                    seances: "S1 – S3"
+                    seances: "Phase 1"
                 },
                 {
                     numero: 2,
                     titre: "Psychoéducation et Rythmes Sociaux (IPSRT)",
                     description: "Régulariser les cycles de sommeil, l'alimentation, et identifier les stresseurs perturbant l'horloge biologique.",
-                    seances: "S4 – S7"
+                    seances: "Phase 2"
                 },
                 {
                     numero: 3,
                     titre: "Restructuration Cognitive (Pôle Dépressif)",
                     description: "Travailler sur les symptômes dépressifs résiduels, la culpabilité liée aux épisodes maniaques passés.",
-                    seances: "S8 – S12"
+                    seances: "Phase 3"
                 },
                 {
                     numero: 4,
                     titre: "Gestion de l'Impulsivité (Pôle Maniaque)",
                     description: "Reconnaître l'hyperactivité naissante, freiner les comportements à risque, remettre en question les idées de grandeur.",
-                    seances: "S13 – S17"
+                    seances: "Phase 4"
                 },
                 {
                     numero: 5,
                     titre: "Prévention des Rechutes",
                     description: "Lister les signes précurseurs (prodromes) de manie et de dépression, établir un plan d'urgence.",
-                    seances: "S18 – S20"
+                    seances: "Phase 5"
                 }
             ]
         }

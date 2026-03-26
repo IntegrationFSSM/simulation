@@ -124,6 +124,7 @@ const ExerciseRenderer = {
             case 'problem_solving': html = this.renderProblemSolving(exercise, patientId); break;
             case 'exposure_sheet': html = this.renderExposureSheet(exercise, patientId); break;
             case 'goals_form': html = this.renderGoalsForm(exercise, patientId); break;
+            case 'custom': html = this.renderCustom(exercise, patientId); break;
             default: html = `<p>Type d'exercice inconnu : ${type}</p>`;
         }
         container.innerHTML = this._wrapExercise(exercise, html);
@@ -450,6 +451,56 @@ const ExerciseRenderer = {
                 <textarea class="notes-textarea ex-input" data-key="moyens_${n}" rows="2" placeholder="Comment atteindre cet objectif…"></textarea>
             </div>
         `);
+    },
+
+    renderCustom(ex, patientId) {
+        const data = ExerciseStorage.get(patientId, ex.id) || {};
+        let html = '<div class="custom-exercise-fields">';
+        
+        if (ex.questions && ex.questions.length > 0) {
+            ex.questions.forEach((q, idx) => {
+                const key = `q_${idx}`;
+                const val = data[key] || '';
+                
+                html += `<div class="exercise-field mb-4">`;
+                html += `  <label class="exercise-field-label fw-bold d-block mb-2" style="color:var(--text);">${idx + 1}. ${q.text}</label>`;
+                
+                if (q.type === 'text') {
+                    html += `  <textarea class="form-control ex-input" rows="3" placeholder="Votre réponse..." data-key="${key}">${val}</textarea>`;
+                } else if (q.type === 'likert5') {
+                    html += `
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="range" class="form-range ex-input w-50" min="0" max="5" step="1" id="range_${key}" data-key="${key}" value="${val || 0}" oninput="document.getElementById('val_${key}').textContent = this.value">
+                            <span id="val_${key}" class="badge bg-primary rounded-pill px-3 py-2" style="font-size:1rem;">${val || 0}</span>
+                            <span class="text-muted ms-2" style="font-size:0.8rem;">(Échelle 0-5)</span>
+                        </div>
+                    `;
+                } else if (q.type === 'likert10') {
+                    html += `
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="range" class="form-range ex-input w-50" min="0" max="10" step="1" id="range_${key}" data-key="${key}" value="${val || 0}" oninput="document.getElementById('val_${key}').textContent = this.value">
+                            <span id="val_${key}" class="badge bg-primary rounded-pill px-3 py-2" style="font-size:1rem;">${val || 0}</span>
+                            <span class="text-muted ms-2" style="font-size:0.8rem;">(Échelle 0-10)</span>
+                        </div>
+                    `;
+                } else if (q.type === 'yesno') {
+                    html += `
+                        <select class="form-select w-auto ex-input" data-key="${key}">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="Oui" ${val === 'Oui' ? 'selected' : ''}>Oui</option>
+                            <option value="Non" ${val === 'Non' ? 'selected' : ''}>Non</option>
+                        </select>
+                    `;
+                }
+                
+                html += `</div>`;
+            });
+        } else {
+            html += '<p class="text-muted text-center my-4">Cet exercice personnalisé ne contient aucune question.</p>';
+        }
+        
+        html += '</div>';
+        return html;
     },
 
     // =====================================================

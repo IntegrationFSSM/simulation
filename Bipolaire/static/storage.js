@@ -89,5 +89,12 @@ const LocalAPI = {
             });
         });
         return { session_number: newSessionNo };
+    },
+
+    savePatientProgress: async (p) => {
+        LocalAPI.savePatientData(p.id, (existing) => {
+            Object.assign(existing, p);
+        });
+        return { status: 'success' };
     }
 };

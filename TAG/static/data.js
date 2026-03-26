@@ -240,37 +240,37 @@ const simulationData = {
                     numero: 1,
                     titre: "Psychoéducation et prise de conscience",
                     description: "Comprendre le modèle cognitif du TAG, identifier le cycle situation → inquiétude → anxiété, et développer la capacité à reconnaître ses propres schémas d'inquiétude.",
-                    seances: "S1 – S3"
+                    seances: "Phase 1"
                 },
                 {
                     numero: 2,
                     titre: "Réévaluation de l'utilité des inquiétudes",
                     description: "Remettre en question les croyances sur l'utilité de s'inquiéter (protection, préparation, contrôle) à l'aide de l'exercice de l'Avocat du Diable et du bilan avantages/désavantages.",
-                    seances: "S3 – S4"
+                    seances: "Phase 2"
                 },
                 {
                     numero: 3,
                     titre: "Augmenter la tolérance à l'incertitude",
                     description: "Identifier les manifestations personnelles d'intolérance à l'incertitude (évitement, procrastination, réassurance) et mettre en place des actions comportementales graduelles pour y faire face.",
-                    seances: "S4 – S6"
+                    seances: "Phase 3"
                 },
                 {
                     numero: 4,
                     titre: "Développer la résolution de problèmes",
                     description: "Apprendre à distinguer les problèmes actuels des problèmes hypothétiques, appliquer une démarche structurée de résolution (définir, brainstormer, évaluer, appliquer) pour les inquiétudes portant sur des problèmes réels.",
-                    seances: "S7 – S10"
+                    seances: "Phase 4"
                 },
                 {
                     numero: 5,
                     titre: "Exposition cognitive aux scénarios catastrophiques",
                     description: "Réduire l'évitement cognitif et la neutralisation par l'exposition en imagination aux pires scénarios redoutés (perte d'emploi, maladie d'un proche), avec suivi de l'habituation.",
-                    seances: "S11 – S14"
+                    seances: "Phase 5"
                 },
                 {
                     numero: 6,
                     titre: "Prévention de la rechute et autonomie",
                     description: "Consolider les acquis, identifier les signaux d'alerte d'une rechute, établir un plan de maintien des progrès avec des objectifs personnels à poursuivre après la fin du traitement.",
-                    seances: "S15"
+                    seances: "Phase 6"
                 }
             ]
         }

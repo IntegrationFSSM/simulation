@@ -13,7 +13,8 @@ const app = {
         exerciseCategory: null,
         sessionExerciseId: null,
         chartInstance: null,
-        scaleAnswers: {}
+        scaleAnswers: {},
+        navigationHistory: []
     },
 
     async init() {
@@ -124,7 +125,11 @@ const app = {
     },
 
     /* =================== NAVIGATION =================== */
-    showPanel(panelId, sessionNo = null) {
+    showPanel(panelId, sessionNo = null, isBack = false) {
+        if (!isBack && (this.state.activePanel !== panelId || this.state.activeSession?.no !== sessionNo)) {
+            this.state.navigationHistory.push({ panel: this.state.activePanel, sessionNo: this.state.activeSession?.no });
+        }
+        
         this.state.activePanel = panelId;
         if (sessionNo) {
             const p = this.state.selectedPatient;
@@ -139,6 +144,15 @@ const app = {
         }
         this.render();
         this.updateSidebarActive(panelId);
+    },
+
+    goBack() {
+        if (this.state.navigationHistory.length > 0) {
+            const prev = this.state.navigationHistory.pop();
+            this.showPanel(prev.panel, prev.sessionNo, true);
+        } else {
+            this.showPanel('dossier', null, true);
+        }
     },
 
     updateSidebarActive(panelId) {
@@ -166,6 +180,7 @@ const app = {
         }
         this.state.selectedPatient = p;
         this.state.activeSession = null;
+        this.state.navigationHistory = [];
         this.showPanel('dossier');
     },
 
@@ -190,7 +205,7 @@ const app = {
         view.innerHTML = document.getElementById('tpl-dashboard').innerHTML;
 
         const totalCompleted = simulationData.patients.reduce((a, p) => a + p.completedSessions.length, 0);
-        const avgGAD = simulationData.patients.reduce((a, p) => a + (p.score_initial?.GAD7 || 0), 0) / simulationData.patients.length;
+        const avgMDQ = simulationData.patients.reduce((a, p) => a + (p.score_initial?.MDQ || 0), 0) / simulationData.patients.length;
 
         document.getElementById('stats-row').innerHTML = `
             <div class="col-6 col-md-3">
@@ -208,13 +223,13 @@ const app = {
             <div class="col-6 col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon orange"><i class="fas fa-chart-line"></i></div>
-                    <div><div class="stat-value">${avgGAD.toFixed(1)}</div><div class="stat-label">GAD-7 moyen initial</div></div>
+                    <div><div class="stat-value">${avgMDQ.toFixed(1)}</div><div class="stat-label">MDQ moyen initial</div></div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon purple"><i class="fas fa-clipboard-list"></i></div>
-                    <div><div class="stat-value">${EXERCISES.length}</div><div class="stat-label">Exercices TAG</div></div>
+                    <div><div class="stat-value">${EXERCISES.length}</div><div class="stat-label">Outils Bipolaire</div></div>
                 </div>
             </div>
         `;
@@ -222,8 +237,8 @@ const app = {
         const grid = document.getElementById('patients-grid');
         simulationData.patients.forEach(p => {
             const pct = Math.round((p.completedSessions.length / p.totalSessions) * 100);
-            const gad = p.score_initial?.GAD7 || 0;
-            const gadInterp = this.interpretScale('GAD7', gad);
+            const mdq = p.score_initial?.MDQ || 0;
+            const mdqInterp = this.interpretScale('MDQ', mdq);
             const avatarClass = p.sexe === 'F' ? 'female' : 'male';
 
             const div = document.createElement('div');
@@ -254,7 +269,7 @@ const app = {
                             <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
                         </div>
                         <div class="d-flex align-items-center justify-content-between">
-                            <span class="gad-score-pill ${gadInterp.color}"><i class="fas fa-stethoscope"></i> GAD-7 : ${gad}</span>
+                            <span class="gad-score-pill ${mdqInterp.color}"><i class="fas fa-stethoscope"></i> MDQ : ${mdq}</span>
                             <span style="font-size:0.73rem;color:var(--text-muted);">Séance ${p.currentSession}</span>
                         </div>
                     </div>
@@ -420,6 +435,12 @@ const app = {
         }
         allSessions.sort((a, b) => a.no - b.no);
 
+        // Compute dynamic indexing for display 1, 2, 3...
+        let displayIndex = 1;
+        allSessions.forEach(s => {
+            s.displayIndex = displayIndex++;
+        });
+
         timelineHtml = allSessions.map(s => {
             const isDone = p.completedSessions.includes(s.no);
             const isCurrent = !s.isIntermediate && s.no === p.currentSession;
@@ -435,14 +456,15 @@ const app = {
             }
 
             if (s.isIntermediate) {
-                label = `S\u00e9ance ${s.parentSession} \u2014 Interm\u00e9diaire`;
+                label = `S\u00e9ance ${s.displayIndex}`;
                 dotContent = `<i class="fas fa-rotate" style="font-size:0.6rem;"></i>`;
                 badgeHtml = isDone
                     ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Termin\u00e9e</span>'
                     : '<span class="badge" style="background:#8b5cf6;color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Interm\u00e9diaire</span>';
+                badgeHtml += `<button class="btn-sm-icon ms-2 no-print" title="Supprimer cette s\u00e9ance" onclick="event.stopPropagation(); app.deleteIntermediateSession(${s.no}, ${s.parentSession})"><i class="fas fa-trash" style="color:var(--danger);font-size:0.75rem;"></i></button>`;
             } else {
-                label = `S\u00e9ance ${s.no}`;
-                dotContent = isDone ? '<i class="fas fa-check" style="font-size:0.65rem;"></i>' : s.no;
+                label = `S\u00e9ance ${s.displayIndex}`;
+                dotContent = isDone ? '<i class="fas fa-check" style="font-size:0.65rem;"></i>' : s.displayIndex;
                 badgeHtml = isDone
                     ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Termin\u00e9e</span>'
                     : isCurrent
@@ -698,6 +720,22 @@ const app = {
                     </div>
                 `;
             }).join('')}
+
+            <div class="mt-3 pt-3 border-top text-center">
+                <select id="dynamic-ex-select" class="form-select form-select-sm mb-2" style="font-size:0.8rem;">
+                    <option value="">-- Ajouter un outil libre / test --</option>
+                    ${EXERCISE_CATEGORIES.map(cat => {
+                        const exs = getExercisesByCategory(cat.id);
+                        if (!exs.length) return '';
+                        return `<optgroup label="${cat.label}">` + 
+                            exs.map(e => `<option value="${e.id}">${e.ref} - ${e.title}</option>`).join('') +
+                        `</optgroup>`;
+                    }).join('')}
+                </select>
+                <button class="btn-ghost btn-sm w-100" style="color:var(--primary);" onclick="app.addDynamicExercise(document.getElementById('dynamic-ex-select').value)">
+                    <i class="fas fa-plus me-1"></i> Ajouter à l'agenda
+                </button>
+            </div>
         `;
     },
 
@@ -1136,11 +1174,21 @@ const app = {
         `;
     },
 
-    /* =================== CONSULTATION & OBJECTIFS =================== */
     renderConsultation(p, cardId, areaId) {
         const card = document.getElementById(cardId);
         const area = document.getElementById(areaId);
         if (!card || !area || !p.consultation) return;
+
+        card.style.display = '';
+        if (app.state.consultationOpen === false) {
+            area.style.display = 'none';
+            const icon = card.querySelector('.fa-chevron-down');
+            if(icon) icon.style.transform = 'rotate(-90deg)';
+        } else {
+            area.style.display = 'block';
+            const icon = card.querySelector('.fa-chevron-down');
+            if(icon) icon.style.transform = 'rotate(0deg)';
+        }
 
         const c = p.consultation;
         const dateStr = c.dateConsultation ? new Date(c.dateConsultation).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
@@ -1312,6 +1360,35 @@ const app = {
         if (!p.notes) p.notes = {};
         p.notes[`session_${s.no}`] = text;
         this.showToast('Notes cliniques sauvegardées.', 'success');
+    },
+
+    async deleteIntermediateSession(sessionNo, parentNo) {
+        if (!confirm('Voulez-vous vraiment supprimer cette séance intermédiaire ? Toute donnée associée sera perdue.')) return;
+        const p = this.state.selectedPatient;
+        if (!p) return;
+        p.intermediateSessions = p.intermediateSessions.filter(i => i.session_number !== sessionNo);
+        p.completedSessions = p.completedSessions.filter(n => n !== sessionNo);
+        await LocalAPI.savePatientProgress(p);
+        this.render();
+    },
+
+    async addDynamicExercise(exerciseId) {
+        if (!exerciseId) return;
+        const p = this.state.selectedPatient;
+        const s = this.state.activeSession;
+        if (!p || !s) return;
+        
+        if (!p.addedExercises) p.addedExercises = {};
+        if (!p.addedExercises[s.no]) p.addedExercises[s.no] = [];
+        
+        if (!p.addedExercises[s.no].includes(exerciseId)) {
+            p.addedExercises[s.no].push(exerciseId);
+            await LocalAPI.savePatientProgress(p);
+            this.showToast("Exercice ou test ajouté à l'agenda.", "success");
+            this.render();
+        } else {
+            this.showToast("Cet outil est déjà dans l'agenda de cette séance.", "warning");
+        }
     },
 
     async completeCurrentSession() {
