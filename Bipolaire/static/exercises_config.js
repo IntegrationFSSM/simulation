@@ -196,6 +196,29 @@ const EXERCISES = [
 ];
 
 function getExerciseById(id) {
+    if (id && id.startsWith('__guide__')) {
+        const tool = id.substring('__guide__'.length);
+        // Try to find a PDF resource from mapped exercises, if any.
+        let pdf = null;
+        if (typeof PROTOCOL_TOOL_MAP !== 'undefined' && PROTOCOL_TOOL_MAP[tool]) {
+            const mapped = PROTOCOL_TOOL_MAP[tool].map(x => EXERCISES.find(e => e.id === x)).filter(Boolean);
+            pdf = mapped.find(e => e.resourcePdf)?.resourcePdf || null;
+        }
+        return {
+            id,
+            ref: 'Guide',
+            category: 'psychoeducation',
+            title: tool.replace(/_/g, ' '),
+            description: 'Guide (document de phase)',
+            type: 'info',
+            content: `<div class="exercise-info-content">
+                <h5>Guide</h5>
+                <p><strong>${tool}</strong></p>
+                ${pdf ? `<p><a href="${pdf}" target="_blank" rel="noopener">Ouvrir le document (PDF)</a></p>` : ''}
+                <p style="color:var(--text-muted)">Coming soon : ce guide n’est pas encore disponible sous forme de fiche interactive.</p>
+            </div>`
+        };
+    }
     let ex = EXERCISES.find(e => e.id === id);
     if (ex) return ex;
     // Support "Créer un exercice personnalisé" flow (stored on the selected patient)
@@ -229,18 +252,51 @@ const PROTOCOL_TOOL_MAP = {
 };
 
 function getExercisesForSession(sessionNo) {
-    const lookupNo = (sessionNo !== Math.floor(sessionNo)) ? Math.floor(sessionNo) : sessionNo;
+    const frac = sessionNo - Math.floor(sessionNo);
+    const isGuideSession = sessionNo !== Math.floor(sessionNo) && Math.abs(frac - 0.9) < 1e-6;
+    const lookupNo = isGuideSession ? Math.ceil(sessionNo) : ((sessionNo !== Math.floor(sessionNo)) ? Math.floor(sessionNo) : sessionNo);
     let theoreticalIds = [];
 
     if (window.PROTOCOL) {
         const phase = window.PROTOCOL.phases.find(p => p.recommended_sessions.includes(lookupNo));
         if (phase) {
-            const requestedTools = [...(phase.worksheets || []), ...(phase.guides || [])];
+            // Guides are moved to a dedicated "Guide" session (X.9) placed before the phase start.
+            const requestedTools = isGuideSession ? (phase.guides || []) : (phase.worksheets || []);
+            let readableGuideIds = [];
+            let fallbackGuideIds = [];
             requestedTools.forEach(tool => {
+                if (!isGuideSession) {
+                    if (PROTOCOL_TOOL_MAP[tool]) {
+                        theoreticalIds = theoreticalIds.concat(PROTOCOL_TOOL_MAP[tool]);
+                    }
+                    return;
+                }
+
+                // Guide session: prefer read-only content. If the mapped exercise is not info/model,
+                // show a guide-card instead (PDF/Coming soon), not the worksheet.
                 if (PROTOCOL_TOOL_MAP[tool]) {
-                    theoreticalIds = theoreticalIds.concat(PROTOCOL_TOOL_MAP[tool]);
+                    const mappedIds = PROTOCOL_TOOL_MAP[tool];
+                    const mapped = mappedIds.map(id => getExerciseById(id)).filter(Boolean);
+                    const allReadable = mapped.length > 0 && mapped.every(e => ['info', 'model'].includes(e.type));
+                    if (allReadable) {
+                        readableGuideIds = readableGuideIds.concat(mappedIds);
+                    } else {
+                        fallbackGuideIds.push(`__guide__${tool}`);
+                    }
+                } else {
+                    fallbackGuideIds.push(`__guide__${tool}`);
                 }
             });
+            if (isGuideSession) {
+                // If at least one real guide exists, do not add "Coming soon" fallbacks.
+                if (readableGuideIds.length > 0) {
+                    theoreticalIds = theoreticalIds.concat(readableGuideIds);
+                } else if (requestedTools.length === 0) {
+                    theoreticalIds.push(`__guide__Coming_soon`);
+                } else {
+                    theoreticalIds = theoreticalIds.concat(fallbackGuideIds);
+                }
+            }
         }
     } else {
         theoreticalIds = EXERCISES.filter(e => e.defaultSessions.includes(lookupNo)).map(e => e.id);
@@ -249,7 +305,8 @@ function getExercisesForSession(sessionNo) {
     // Add dynamic added exercises
     let added = [];
     if (window.app && app.state && app.state.selectedPatient && app.state.selectedPatient.addedExercises) {
-        added = app.state.selectedPatient.addedExercises[sessionNo] || [];
+        const agendaKey = isGuideSession ? lookupNo : lookupNo;
+        added = app.state.selectedPatient.addedExercises[agendaKey] || [];
     }
 
     // Psychologue library: exercises explicitly marked as always available

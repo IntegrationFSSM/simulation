@@ -25,8 +25,8 @@ window.PROTOCOLS_DB = {
                     { "tool_id": "BDI", "required": false, "recurrence": "session_8" },
                     { "tool_id": "ASRM", "required": false, "recurrence": "session_8" }
                 ],
-                "worksheets": ["Rythmes_Sociaux"],
-                "guides": ["Hygiene_De_Vie"]
+                "worksheets": ["Rythmes_Sociaux", "Hygiene_De_Vie"],
+                "guides": []
             },
             {
                 "phase_id": "phase_3_pole_depressif",

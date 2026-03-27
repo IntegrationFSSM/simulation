@@ -53,6 +53,12 @@ const app = {
         this.render();
     },
 
+    _isGuideSessionNo(no) {
+        if (no === Math.floor(no)) return false;
+        const frac = no - Math.floor(no);
+        return Math.abs(frac - 0.9) < 1e-6;
+    },
+
     async _loadPatientProgress(p) {
         try {
             const progress = await LocalAPI.getPatientProgress(p.id);
@@ -221,19 +227,37 @@ const app = {
                 });
             });
         }
+
+        // Add "Guide" sessions before the first session of each phase (X.9).
+        if (window.PROTOCOL && Array.isArray(window.PROTOCOL.phases)) {
+            window.PROTOCOL.phases.forEach(phase => {
+                const starts = (phase.recommended_sessions || []).slice().sort((a, b) => a - b);
+                const startNo = starts.length ? starts[0] : null;
+                if (!Number.isFinite(startNo) || startNo < 1) return;
+                const guideNo = parseFloat((startNo - 0.1).toFixed(1));
+                allSessions.push({ no: guideNo, isGuide: true, guideForSession: startNo });
+            });
+        }
         allSessions.sort((a, b) => a.no - b.no);
 
         // Compute dynamic indexing for display 1, 2, 3...
+        // Do NOT count guide sessions (X.9) in numbering to avoid gaps.
         let displayIndex = 1;
         allSessions.forEach(s => {
-            s.displayIndex = displayIndex++;
+            const isGuide = !!s.isGuide || this._isGuideSessionNo(s.no);
+            if (!isGuide) {
+                s.displayIndex = displayIndex++;
+            } else {
+                s.displayIndex = null;
+            }
         });
 
         const buildSessionHtml = (s) => {
             const isDone = p.completedSessions.includes(s.no);
-            const isCurrent = !s.isIntermediate && s.no === p.currentSession;
+            const isGuide = !!s.isGuide || this._isGuideSessionNo(s.no);
+            const isCurrent = !s.isIntermediate && !isGuide && s.no === p.currentSession;
             const parentNo = s.isIntermediate ? s.parentSession : s.no;
-            const exercisesForSession = getExercisesForSession(parentNo);
+            const exercisesForSession = getExercisesForSession(isGuide ? s.no : parentNo);
             const exerciseCount = exercisesForSession.length;
 
             let label, dotContent, badgeHtml;
@@ -243,7 +267,12 @@ const app = {
                 hasIncompletes = app.hasIncompleteExercises(p.id, s.no);
             }
 
-            if (s.isIntermediate) {
+            if (isGuide) {
+                const guideFor = s.guideForSession || Math.ceil(s.no);
+                label = `Guide — Avant Séance ${guideFor}`;
+                dotContent = `<i class="fas fa-book-open" style="font-size:0.65rem;"></i>`;
+                badgeHtml = '<span class="badge" style="background:var(--info);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Guide</span>';
+            } else if (s.isIntermediate) {
                 label = `S\u00e9ance ${s.displayIndex}`;
                 // Optional: keep an indicator that it's an intermediate mapping
                 dotContent = `<i class="fas fa-rotate" style="font-size:0.6rem;"></i>`;
@@ -266,12 +295,12 @@ const app = {
             }
 
             let row = `
-                <div class="timeline-row" onclick="app.showPanel('session', ${s.no})" style="${s.isIntermediate ? 'padding-left:20px;border-left:3px solid #8b5cf6;margin-left:14px;' : ''}">
-                    <div class="timeline-dot ${isDone ? 'done' : isCurrent ? 'current' : 'pending'}" style="${s.isIntermediate ? 'background:#8b5cf6;color:white;border-color:#8b5cf6;' : ''}">
+                <div class="timeline-row" onclick="app.showPanel('session', ${s.no})" style="${s.isIntermediate ? 'padding-left:20px;border-left:3px solid #8b5cf6;margin-left:14px;' : isGuide ? 'padding-left:20px;border-left:3px solid var(--info);margin-left:14px;' : ''}">
+                    <div class="timeline-dot ${isDone ? 'done' : isCurrent ? 'current' : 'pending'}" style="${s.isIntermediate ? 'background:#8b5cf6;color:white;border-color:#8b5cf6;' : isGuide ? 'background:var(--info);color:white;border-color:var(--info);' : ''}">
                         ${dotContent}
                     </div>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-size:0.84rem;font-weight:${isCurrent ? '700' : '500'};color:${s.isIntermediate ? '#8b5cf6' : isCurrent ? 'var(--primary)' : 'var(--text)'};">
+                        <div style="font-size:0.84rem;font-weight:${isCurrent ? '700' : '500'};color:${s.isIntermediate ? '#8b5cf6' : isGuide ? 'var(--info)' : isCurrent ? 'var(--primary)' : 'var(--text)'};">
                             ${label}
                         </div>
                         <div style="font-size:0.72rem;color:var(--text-muted);">
@@ -283,7 +312,7 @@ const app = {
             `;
 
             // Add "+ Intermédiaire" button after any regular session (completed or not)
-            if (!s.isIntermediate) {
+            if (!s.isIntermediate && !isGuide) {
                 row += `
                     <div style="margin-left:28px;margin-bottom:4px;">
                         <button class="btn-ghost" style="font-size:0.68rem;padding:2px 10px;color:#8b5cf6;border:1px dashed #c4b5fd;border-radius:8px;"
@@ -300,6 +329,11 @@ const app = {
         if (window.PROTOCOL && window.PROTOCOL.phases && window.PROTOCOL.phases.length > 0) {
             window.PROTOCOL.phases.forEach((phase) => {
                 const phaseSessions = allSessions.filter(s => {
+                    const isGuide = !!s.isGuide || app._isGuideSessionNo(s.no);
+                    if (isGuide) {
+                        const guideFor = s.guideForSession || Math.ceil(s.no);
+                        return phase.recommended_sessions.includes(guideFor);
+                    }
                     const parentNo = s.isIntermediate ? s.parentSession : s.no;
                     return phase.recommended_sessions.includes(parentNo);
                 });
@@ -437,7 +471,11 @@ const app = {
         view.innerHTML = document.getElementById('tpl-session').innerHTML;
 
         let sessionTitle = `Séance ${s.no}`;
-        if (s.no !== Math.floor(s.no)) {
+        if (this._isGuideSessionNo(s.no)) {
+            const startNo = Math.ceil(s.no);
+            const phase = window.PROTOCOL?.phases?.find(p => p.recommended_sessions.includes(startNo));
+            sessionTitle = phase ? `Guide — ${phase.phase_name}` : `Guide — Avant séance ${startNo}`;
+        } else if (s.no !== Math.floor(s.no)) {
             // This is an intermediate session
             const parentNo = Math.floor(s.no);
             sessionTitle = `Séance ${parentNo} — Intermédiaire`;
@@ -453,9 +491,10 @@ const app = {
         document.getElementById('session-badge').textContent = `#${s.no}`;
 
         const infoArea = document.getElementById('session-info-area');
-        const isIntermediate = s.no !== Math.floor(s.no);
-        const infoParentNo = isIntermediate ? Math.floor(s.no) : s.no;
-        let infoExercises = getExercisesForSession(infoParentNo);
+        const isGuide = this._isGuideSessionNo(s.no);
+        const isIntermediate = !isGuide && s.no !== Math.floor(s.no);
+        const infoLookupNo = isGuide ? s.no : (isIntermediate ? Math.floor(s.no) : s.no);
+        let infoExercises = getExercisesForSession(infoLookupNo);
 
         // Apply same filtering as sidebar for intermediate sessions
         if (isIntermediate && p) {
@@ -499,9 +538,11 @@ const app = {
         const area = document.getElementById('session-exercises-area');
         if (!area) return;
 
-        const isIntermediate = s.no !== Math.floor(s.no);
+        const isGuide = this._isGuideSessionNo(s.no);
+        const isIntermediate = !isGuide && s.no !== Math.floor(s.no);
         const parentNo = isIntermediate ? Math.floor(s.no) : s.no;
-        let sessionExercises = getExercisesForSession(parentNo);
+        const lookupNo = isGuide ? s.no : parentNo;
+        let sessionExercises = getExercisesForSession(lookupNo);
         const pid = this.state.selectedPatient?.id || 1;
         const p = this.state.selectedPatient;
 
@@ -529,9 +570,17 @@ const app = {
         const alwaysExercises = sessionExercises.filter(ex => ex && ex.alwaysAvailable === true);
         const regularExercises = sessionExercises.filter(ex => ex && ex.alwaysAvailable !== true);
 
-        const sessionLabel = isIntermediate
-            ? `S\u00e9ance ${parentNo} \u2014 Interm\u00e9diaire`
-            : `S\u00e9ance ${s.no}`;
+        const sessionLabel = isGuide
+            ? `Guide \u2014 Avant s\u00e9ance ${Math.ceil(s.no)}`
+            : isIntermediate
+                ? `S\u00e9ance ${parentNo} \u2014 Interm\u00e9diaire`
+                : `S\u00e9ance ${s.no}`;
+
+        // Agenda key where dynamic/custom exercises are stored
+        const agendaKey = isGuide ? Math.ceil(s.no) : parentNo;
+        const addedIds = (p && p.addedExercises && p.addedExercises[agendaKey]) ? p.addedExercises[agendaKey] : [];
+        const addedItems = addedIds.map(id => getExerciseById(id)).filter(Boolean);
+        const addedCustom = addedItems.filter(ex => ex.isCustom);
 
         area.innerHTML = `
             <div style="margin-bottom:10px;">
@@ -562,17 +611,30 @@ const app = {
                 const status = ExerciseStorage.getStatus(pid, ex.id);
                 const isForm = !['info', 'model'].includes(ex.type);
                 const isActive = this.state.sessionExerciseId === ex.id;
+                const showCustomActions = !!ex.isCustom;
                 const statusIcon = isForm ? (
                     status === 'completed' ? '<i class="fas fa-check-circle" style="color:var(--success);"></i>' :
                     status === 'in_progress' ? '<i class="fas fa-circle-half-stroke" style="color:var(--warning);"></i>' :
                     '<i class="fas fa-circle" style="color:var(--text-light);font-size:0.6rem;"></i>'
                 ) : '<i class="fas fa-book-open" style="color:var(--info);font-size:0.7rem;"></i>';
                 return `
-                    <div class="ex-session-item ${isActive ? 'active' : ''}" onclick="app.selectSessionExercise('${ex.id}')" style="${isActive ? 'background:var(--primary-light);border-left:3px solid var(--primary);' : ''}">
-                        ${statusIcon}
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:0.8rem;font-weight:600;">${ex.ref} ${ex.title}</div>
+                    <div class="ex-session-item ${isActive ? 'active' : ''}" onclick="app.selectSessionExercise('${ex.id}')" style="${isActive ? 'background:var(--primary-light);border-left:3px solid var(--primary);' : ''};${showCustomActions ? 'justify-content:space-between;' : ''}">
+                        <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+                            ${statusIcon}
+                            <div style="min-width:0;">
+                                <div style="font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ex.ref} ${ex.title}</div>
+                            </div>
                         </div>
+                        ${showCustomActions ? `
+                            <div style="display:flex;gap:6px;flex-shrink:0;">
+                                <button class="btn-sm-icon" title="Modifier" onclick="event.stopPropagation(); app.openEditCustomExercise('${ex.id}')">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-sm-icon" title="Retirer de la séance" onclick="event.stopPropagation(); app.removeAddedExerciseFromSession('${ex.id}', ${agendaKey})">
+                                    <i class="fas fa-trash" style="color:var(--danger);"></i>
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }).join('')}
@@ -583,6 +645,79 @@ const app = {
                 </button>
             </div>
         `;
+    },
+
+    async removeAddedExerciseFromSession(exerciseId, agendaKey) {
+        const p = this.state.selectedPatient;
+        if (!p) return;
+        if (!p.addedExercises) p.addedExercises = {};
+        if (!p.addedExercises[agendaKey]) p.addedExercises[agendaKey] = [];
+        p.addedExercises[agendaKey] = p.addedExercises[agendaKey].filter(id => id !== exerciseId);
+        await LocalAPI.savePatientProgress(p);
+        if (this.state.sessionExerciseId === exerciseId) this.state.sessionExerciseId = null;
+        this.showToast("Exercice retiré de la séance.", "success");
+        const s = this.state.activeSession;
+        if (s) {
+            this.renderSessionExercises(s);
+            this.renderSessionMainArea(s);
+        }
+    },
+
+    openEditCustomExercise(exerciseId) {
+        const p = this.state.selectedPatient;
+        if (!p || !p.customExercises || !p.customExercises[exerciseId]) {
+            this.showToast("Exercice introuvable.", "warning");
+            return;
+        }
+        const ex = p.customExercises[exerciseId];
+        const root = document.getElementById('modal-root');
+        if (!root) return;
+        const safeTitle = (ex.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+        root.innerHTML = `
+            <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1050;display:flex;align-items:center;justify-content:center;padding:16px;">
+                <div style="background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);width:100%;max-width:600px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+                    <div style="padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                        <h5 style="margin:0;font-weight:800;"><i class="fas fa-pen me-2 text-primary-c"></i>Modifier l’exercice</h5>
+                        <button class="btn-sm-icon" onclick="document.getElementById('modal-root').innerHTML=''"><i class="fas fa-xmark"></i></button>
+                    </div>
+                    <div style="padding:1.2rem 1.4rem;overflow-y:auto;flex:1;">
+                        <div class="mb-3">
+                            <label style="font-size:0.82rem;font-weight:700;color:var(--text-muted);">Titre *</label>
+                            <input type="text" id="edit-custom-ex-title" class="form-control form-control-sm mt-1" value="${safeTitle}" />
+                        </div>
+                        <div class="mb-3">
+                            <label style="font-size:0.82rem;font-weight:700;color:var(--text-muted);">Description</label>
+                            <textarea id="edit-custom-ex-desc" class="form-control form-control-sm mt-1" rows="2">${ex.description || ''}</textarea>
+                        </div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">
+                            Les questions ne sont pas éditables pour l’instant (v1).
+                        </div>
+                    </div>
+                    <div style="padding:1rem 1.4rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
+                        <button class="btn-ghost" onclick="document.getElementById('modal-root').innerHTML=''">Annuler</button>
+                        <button class="btn-primary-custom" onclick="app.saveEditedCustomExercise('${exerciseId}')"><i class="fas fa-save me-1"></i>Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    async saveEditedCustomExercise(exerciseId) {
+        const p = this.state.selectedPatient;
+        if (!p || !p.customExercises || !p.customExercises[exerciseId]) return;
+        const title = document.getElementById('edit-custom-ex-title')?.value.trim();
+        const desc = document.getElementById('edit-custom-ex-desc')?.value.trim();
+        if (!title) { this.showToast("Le titre est obligatoire.", "warning"); return; }
+        p.customExercises[exerciseId].title = title;
+        p.customExercises[exerciseId].description = desc || '';
+        await LocalAPI.savePatientProgress(p);
+        document.getElementById('modal-root').innerHTML = '';
+        this.showToast("Exercice modifié.", "success");
+        const s = this.state.activeSession;
+        if (s) {
+            this.renderSessionExercises(s);
+            this.renderSessionMainArea(s);
+        }
     },
 
     renderSessionScales(s) {
@@ -786,9 +921,11 @@ const app = {
         if (!area) return;
 
         const exId = this.state.sessionExerciseId;
-        const isIntermediate = s.no !== Math.floor(s.no);
+        const isGuide = this._isGuideSessionNo(s.no);
+        const isIntermediate = !isGuide && s.no !== Math.floor(s.no);
         const parentNo = isIntermediate ? Math.floor(s.no) : s.no;
-        let sessionExercises = getExercisesForSession(parentNo);
+        const lookupNo = isGuide ? s.no : parentNo;
+        let sessionExercises = getExercisesForSession(lookupNo);
         const pid = this.state.selectedPatient?.id || 1;
         const p = this.state.selectedPatient;
 
@@ -836,7 +973,7 @@ const app = {
                     <div class="panel-card-body" style="text-align:center;padding:3rem;">
                         ${warningBanner}
                         <i class="fas fa-clipboard-list" style="font-size:3rem;color:var(--primary-light);margin-bottom:1rem;display:block;"></i>
-                        <h5 style="font-weight:700;color:var(--text);margin-bottom:8px;">S\u00e9ance ${isIntermediate ? parentNo + ' \u2014 Interm\u00e9diaire' : s.no}</h5>
+                        <h5 style="font-weight:700;color:var(--text);margin-bottom:8px;">${isGuide ? ('Guide — Avant séance ' + Math.ceil(s.no)) : ('Séance ' + (isIntermediate ? (parentNo + ' — Intermédiaire') : s.no))}</h5>
                         <p style="font-size:0.88rem;color:var(--text-muted);max-width:500px;margin:0 auto 1.5rem;">
                             ${exercises.length > 0
                                 ? 'S\u00e9lectionnez un exercice ou cliquez sur le premier pour commencer.'
