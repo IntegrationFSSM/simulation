@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html><head><title>TPL Debug</title></head>
+<body>
+<h2>TPL Debug</h2>
+<pre id="out" style="background:#f0f0f0;padding:20px;font-size:14px;white-space:pre-wrap;"></pre>
+
+<script src="static/data.js"></script>
+<script src="static/protocols.js"></script>
+<script>
+// Minimal mock for LocalAPI 
+const LocalAPI = {
+    getPatients: () => Promise.resolve({ patients: [] }),
+    getPatientProgress: () => Promise.resolve(null),
+    savePatientProgress: () => {},
+    completeSession: () => Promise.resolve()
+};
+</script>
+<script src="static/exercises_config.js"></script>
+<script>
+const out = document.getElementById('out');
+function log(msg) { out.textContent += msg + '\n'; }
+
+log('=== 1. PROTOCOLS_DB ===');
+log('  keys: ' + JSON.stringify(Object.keys(window.PROTOCOLS_DB || {})));
+log('  TPL exists: ' + !!window.PROTOCOLS_DB?.TPL);
+
+window.currentTroubleId = "TPL";
+window.PROTOCOL = window.PROTOCOLS_DB?.[window.currentTroubleId];
+log('  window.PROTOCOL set: ' + !!window.PROTOCOL);
+log('  PROTOCOL.trouble_name: ' + (window.PROTOCOL?.trouble_name || 'N/A'));
+log('  PROTOCOL.phases count: ' + (window.PROTOCOL?.phases?.length || 0));
+
+log('\n=== 2. simulationData ===');
+log('  exists: ' + !!window.simulationData);
+log('  patients count: ' + (simulationData?.patients?.length || 0));
+const p = simulationData?.patients?.[0];
+log('  patient[0].name: ' + (p?.name || 'N/A'));
+log('  patient[0].totalSessions: ' + (p?.totalSessions || 'N/A'));
+
+log('\n=== 3. getSessionsForPatient ===');
+const sessions = simulationData?.getSessionsForPatient?.(p) || [];
+log('  sessions length: ' + sessions.length);
+if (sessions.length > 0) {
+    log('  first: ' + JSON.stringify(sessions[0]));
+    log('  last: ' + JSON.stringify(sessions[sessions.length - 1]));
+}
+
+log('\n=== 4. getExercisesForSession ===');
+for (let sNo of [1, 4, 9, 15, 22, 30]) {
+    try {
+        const exs = getExercisesForSession(sNo);
+        log('  session ' + sNo + ': ' + exs.length + ' exercises → ' + exs.map(e => e.id).join(', '));
+    } catch(e) {
+        log('  session ' + sNo + ': ERROR → ' + e.message);
+    }
+}
+
+log('\n=== 5. PROTOCOL phases detail ===');
+(window.PROTOCOL?.phases || []).forEach(ph => {
+    log('  ' + ph.phase_name + ' → sessions: ' + ph.recommended_sessions.slice(0,5).join(',') + '... worksheets: ' + JSON.stringify(ph.worksheets));
+});
+
+log('\n=== 6. EXERCISE_CATEGORIES ===');
+log('  ' + JSON.stringify(EXERCISE_CATEGORIES.map(c => c.id)));
+
+log('\n=== 7. EXERCISES ===');
+EXERCISES.forEach(e => {
+    log('  ' + e.id + ' (type=' + e.type + ', always=' + !!e.alwaysAvailable + ')');
+});
+
+log('\n=== 8. PROTOCOL_TOOL_MAP ===');
+log('  ' + JSON.stringify(PROTOCOL_TOOL_MAP));
+
+log('\n=== DONE ===');
+</script>
+</body>
+</html>

@@ -125,6 +125,8 @@ const ExerciseRenderer = {
             case 'exposure_sheet': html = this.renderExposureSheet(exercise, patientId); break;
             case 'goals_form': html = this.renderGoalsForm(exercise, patientId); break;
             case 'custom': html = this.renderCustom(exercise, patientId); break;
+            case 'diary_card_dbt': html = this.renderDiaryCardDBT(exercise, patientId); break;
+            case 'chain_analysis': html = this.renderChainAnalysis(exercise, patientId); break;
             default: html = `<p>Type d'exercice inconnu : ${type}</p>`;
         }
         container.innerHTML = this._wrapExercise(exercise, html);
@@ -499,6 +501,83 @@ const ExerciseRenderer = {
             html += '<p class="text-muted text-center my-4">Cet exercice personnalisé ne contient aucune question.</p>';
         }
         
+        html += '</div>';
+        return html;
+    },
+
+    renderDiaryCardDBT(ex, patientId) {
+        const data = ExerciseStorage.get(patientId, ex.id) || {};
+        const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+        
+        let html = '<div class="diary-grid" style="overflow-x:auto;">';
+        html += '<table class="table table-bordered" style="font-size:0.8rem; text-align:center; vertical-align:middle;">';
+        html += '<thead style="background:var(--primary-light);"><tr><th style="min-width:180px;text-align:left;">Indicateurs</th>';
+        days.forEach(d => html += `<th>${d}</th>`);
+        html += '</tr></thead><tbody>';
+        
+        const renderRowNum = (label, key, max) => {
+            let row = `<tr><td style="text-align:left;">${label} (0-${max})</td>`;
+            for (let i = 0; i < 7; i++) {
+                const val = data[`${key}_${i}`] || '';
+                row += `<td><input type="number" class="form-control form-control-sm ex-input" style="width:45px;margin:0 auto;text-align:center;" min="0" max="${max}" data-key="${key}_${i}" value="${val}"></td>`;
+            }
+            row += '</tr>';
+            return row;
+        };
+        
+        const renderRowCheck = (label, key) => {
+            let row = `<tr><td style="text-align:left;">${label}</td>`;
+            for (let i = 0; i < 7; i++) {
+                const val = data[`${key}_${i}`] ? 'checked' : '';
+                row += `<td><input type="checkbox" class="form-check-input ex-check" data-key="${key}_${i}" ${val}></td>`;
+            }
+            row += '</tr>';
+            return row;
+        };
+
+        html += '<tr><td colspan="8" style="background:#f8f9fa;font-weight:700;text-align:left;">Émotions & Pulsions</td></tr>';
+        html += renderRowNum("Souffrance émotionnelle", "souffrance", 5);
+        html += renderRowNum("Désir de suicide", "suicide_desir", 5);
+        html += renderRowNum("Désir d'automutilation", "am_desir", 5);
+
+        html += '<tr><td colspan="8" style="background:#f8f9fa;font-weight:700;text-align:left;">Comportements (Oui/Non)</td></tr>';
+        html += renderRowCheck("Automutilation accomplie", "am_act");
+        html += renderRowCheck("Drogues/Alcool", "substance");
+        html += renderRowCheck("Compétences TCD", "skills");
+
+        html += '</tbody></table></div>';
+        return html;
+    },
+
+    renderChainAnalysis(ex, patientId) {
+        const data = ExerciseStorage.get(patientId, ex.id) || {};
+        const steps = [
+            { title: "Comportement problématique", desc: "Description précise et détaillée du comportement (quoi, quand, où, avec qui ?)." },
+            { title: "Événement déclencheur (Prompting Event)", desc: "Que s'est-il passé juste avant l'apparition du problème ?" },
+            { title: "Facteurs de vulnérabilité", desc: "Contexte qui vous a rendu plus sensible (sommeil, faim, stress, substances)." },
+            { title: "La chaîne (Liens)", desc: "Listez les pensées, émotions et sensations qui ont mené au comportement (lien par lien)." },
+            { title: "Conséquences", desc: "Quelles ont été les conséquences pour vous ? Et pour les autres ?" },
+            { title: "Comportements alternatifs (Solutions)", desc: "Quelles compétences auriez-vous pu utiliser à chaque maillon ?" },
+            { title: "Plan de prévention", desc: "Comment réduire votre vulnérabilité future pour cet événement ?" },
+            { title: "Réparation (Overcorrection)", desc: "Comment pouvez-vous réparer le tort causé par ce comportement ?" },
+            { title: "Émotions actuelles", desc: "Que ressentez-vous maintenant en faisant cette analyse ?" }
+        ];
+
+        let html = '<div class="chain-steps" style="display:flex;flex-direction:column;gap:16px;">';
+        steps.forEach((step, idx) => {
+            const key = `step_${idx}`;
+            const val = data[key] || '';
+            html += `
+                <div style="display:flex;gap:14px;align-items:flex-start;background:white;padding:14px;border:1px solid var(--border);border-radius:var(--r-md);">
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">${idx + 1}</div>
+                    <div style="flex:1;">
+                        <label style="display:block;font-weight:700;margin-bottom:4px;">${step.title}</label>
+                        <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 8px;">${step.desc}</p>
+                        <textarea class="form-control ex-input" rows="2" data-key="${key}" placeholder="Votre analyse...">${val}</textarea>
+                    </div>
+                </div>
+            `;
+        });
         html += '</div>';
         return html;
     },

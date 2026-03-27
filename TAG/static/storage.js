@@ -87,3 +87,6 @@ const LocalAPI = {
         return { status: 'success' };
     }
 };
+
+// Expose globally for modules and debugging.
+window.LocalAPI = LocalAPI;

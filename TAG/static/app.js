@@ -253,48 +253,56 @@ const app = {
         });
 
         const buildSessionHtml = (s) => {
-            const isDone = p.completedSessions.includes(s.no);
-            const isGuide = !!s.isGuide || this._isGuideSessionNo(s.no);
-            const isCurrent = !s.isIntermediate && !isGuide && s.no === p.currentSession;
-            const parentNo = s.isIntermediate ? s.parentSession : s.no;
-            const exercisesForSession = getExercisesForSession(isGuide ? s.no : parentNo);
-            const exerciseCount = exercisesForSession.length;
+            try {
+                const completed = Array.isArray(p.completedSessions) ? p.completedSessions : [];
+                const isDone = completed.includes(s.no);
+                const isGuide = !!s.isGuide || this._isGuideSessionNo(s.no);
+                const isCurrent = !s.isIntermediate && !isGuide && s.no === p.currentSession;
+                const parentNo = s.isIntermediate ? s.parentSession : s.no;
+                let exerciseCount = 0;
+                try {
+                    const exercisesForSession = getExercisesForSession(isGuide ? s.no : parentNo) || [];
+                    exerciseCount = exercisesForSession.length || 0;
+                } catch (e) {
+                    console.error('Erreur getExercisesForSession:', e, { session: s, parentNo });
+                    exerciseCount = 0;
+                }
 
-            let label, dotContent, badgeHtml;
+                let label, dotContent, badgeHtml;
 
-            let hasIncompletes = false;
-            if (isDone) {
-                hasIncompletes = app.hasIncompleteExercises(p.id, s.no);
-            }
+                let hasIncompletes = false;
+                if (isDone) {
+                    hasIncompletes = app.hasIncompleteExercises(p.id, s.no);
+                }
 
-            if (isGuide) {
-                const guideFor = s.guideForSession || Math.ceil(s.no);
-                label = `Guide — Avant Séance ${guideFor}`;
-                dotContent = `<i class="fas fa-book-open" style="font-size:0.65rem;"></i>`;
-                badgeHtml = '<span class="badge" style="background:var(--info);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Guide</span>';
-            } else if (s.isIntermediate) {
-                label = `S\u00e9ance ${s.displayIndex}`;
-                // Optional: keep an indicator that it's an intermediate mapping
-                dotContent = `<i class="fas fa-rotate" style="font-size:0.6rem;"></i>`;
-                badgeHtml = isDone
-                    ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Termin\u00e9e</span>'
-                    : '<span class="badge" style="background:#8b5cf6;color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Interm\u00e9diaire</span>';
-                badgeHtml += `<button class="btn-sm-icon ms-2 no-print" title="Supprimer cette s\u00e9ance" onclick="event.stopPropagation(); app.deleteIntermediateSession(${s.no}, ${s.parentSession})"><i class="fas fa-trash" style="color:var(--danger);font-size:0.75rem;"></i></button>`;
-            } else {
-                label = `S\u00e9ance ${s.displayIndex}`;
-                dotContent = isDone ? '<i class="fas fa-check" style="font-size:0.65rem;"></i>' : s.displayIndex;
-                badgeHtml = isDone
-                    ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Termin\u00e9e</span>'
-                    : isCurrent
-                        ? '<span class="badge" style="background:var(--warning);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">En cours</span>'
-                        : '';
-            }
+                if (isGuide) {
+                    const guideFor = s.guideForSession || Math.ceil(s.no);
+                    label = `Guide — Avant Séance ${guideFor}`;
+                    dotContent = `<i class="fas fa-book-open" style="font-size:0.65rem;"></i>`;
+                    badgeHtml = '<span class="badge" style="background:var(--info);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Guide</span>';
+                } else if (s.isIntermediate) {
+                    label = `S\u00e9ance ${s.displayIndex}`;
+                    // Optional: keep an indicator that it's an intermediate mapping
+                    dotContent = `<i class="fas fa-rotate" style="font-size:0.6rem;"></i>`;
+                    badgeHtml = isDone
+                        ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Termin\u00e9e</span>'
+                        : '<span class="badge" style="background:#8b5cf6;color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Interm\u00e9diaire</span>';
+                    badgeHtml += `<button class="btn-sm-icon ms-2 no-print" title="Supprimer cette s\u00e9ance" onclick="event.stopPropagation(); app.deleteIntermediateSession(${s.no}, ${s.parentSession})"><i class="fas fa-trash" style="color:var(--danger);font-size:0.75rem;"></i></button>`;
+                } else {
+                    label = `S\u00e9ance ${s.displayIndex}`;
+                    dotContent = isDone ? '<i class="fas fa-check" style="font-size:0.65rem;"></i>' : s.displayIndex;
+                    badgeHtml = isDone
+                        ? '<span class="badge" style="background:var(--success);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">Termin\u00e9e</span>'
+                        : isCurrent
+                            ? '<span class="badge" style="background:var(--warning);color:white;font-size:0.65rem;padding:3px 8px;border-radius:10px;">En cours</span>'
+                            : '';
+                }
 
-            if (hasIncompletes) {
-                badgeHtml += ' <span style="color:var(--warning);font-size:0.8rem;margin-left:4px;" title="Exercices non termin\u00e9s"><i class="fas fa-exclamation-triangle"></i></span>';
-            }
+                if (hasIncompletes) {
+                    badgeHtml += ' <span style="color:var(--warning);font-size:0.8rem;margin-left:4px;" title="Exercices non termin\u00e9s"><i class="fas fa-exclamation-triangle"></i></span>';
+                }
 
-            let row = `
+                let row = `
                 <div class="timeline-row" onclick="app.showPanel('session', ${s.no})" style="${s.isIntermediate ? 'padding-left:20px;border-left:3px solid #8b5cf6;margin-left:14px;' : isGuide ? 'padding-left:20px;border-left:3px solid var(--info);margin-left:14px;' : ''}">
                     <div class="timeline-dot ${isDone ? 'done' : isCurrent ? 'current' : 'pending'}" style="${s.isIntermediate ? 'background:#8b5cf6;color:white;border-color:#8b5cf6;' : isGuide ? 'background:var(--info);color:white;border-color:var(--info);' : ''}">
                         ${dotContent}
@@ -324,6 +332,17 @@ const app = {
             }
 
             return row;
+            } catch (e) {
+                console.error('Erreur buildSessionHtml:', e, s);
+                const no = s?.no ?? '?';
+                return `<div class="timeline-row" onclick="app.showPanel('session', ${no})">
+                    <div class="timeline-dot pending">${no}</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:0.84rem;font-weight:600;color:var(--text);">Séance ${no}</div>
+                        <div style="font-size:0.72rem;color:var(--text-muted);">—</div>
+                    </div>
+                </div>`;
+            }
         };
 
         if (window.PROTOCOL && window.PROTOCOL.phases && window.PROTOCOL.phases.length > 0) {
@@ -362,6 +381,10 @@ const app = {
                     </div>
                 `;
             });
+            // Fallback: if protocol mapping yields no phase sessions, show the raw session list.
+            if (!timelineHtml || timelineHtml.trim() === '') {
+                timelineHtml = allSessions.map(buildSessionHtml).join('');
+            }
         } else {
             timelineHtml = allSessions.map(buildSessionHtml).join('');
         }
@@ -907,6 +930,23 @@ const app = {
             for (let i = 0; i < ex.questions.length; i++) {
                 const val = data[`q_${i}`];
                 if (val === undefined || val === null || val.toString().trim() === '') return false;
+            }
+            return true;
+        }
+
+        if (ex.type === 'chain_analysis') {
+            for (let i = 0; i < 9; i++) {
+                const val = data[`step_${i}`];
+                if (!val || val.trim() === '') return false;
+            }
+            return true;
+        }
+
+        if (ex.type === 'diary_card_dbt') {
+            // Un journal TCD est considéré validé si les 7 jours de souffrance sont complétés
+            for (let i = 0; i < 7; i++) {
+                const val = data[`souffrance_${i}`];
+                if (!val || val.toString().trim() === '') return false;
             }
             return true;
         }

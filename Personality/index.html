@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ory+ | Simulateur TCD — Personnalité Limite (TPL)</title>
+    <meta name="description" content="Plateforme clinique de simulation du protocole pour le Trouble de la Personnalité Limite (DBT/TCD) — Oryplus ERP">
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Module design system (standalone, no TAG dependency) -->
+    <link rel="stylesheet" href="static/styles.css?v=2.1.0">
+</head>
+<body>
+
+<!-- ========================== SIDEBAR ========================== -->
+<div class="sidebar-container">
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="navbar-brand d-flex align-items-center">
+                <button class="logo-toggle" id="logoToggle" type="button" style="padding:0;background:none;border:none;display:flex;align-items:center;cursor:pointer;">
+                    <img src="../TAG/static/img/OryLogofig.png" alt="Logo" class="sidebar-logo" style="height:40px;object-fit:contain;margin-right:-3px;" onerror="this.style.display='none'">
+                </button>
+                <a href="#" class="brand-link" style="text-decoration:none;display:flex;align-items:center;">
+                    <img src="../TAG/static/img/OryLogoBrand.png" alt="Symbol" class="brand-text-img" style="height:20px;object-fit:contain;" onerror="this.style.display='none'">
+                </a>
+            </div>
+        </div>
+
+        <div class="menu-items">
+            <div style="padding: 15px 20px; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                Protocoles Cliniques
+            </div>
+            <a href="../TAG/index.html" class="menu-item">
+                <i class="fas fa-wind"></i>
+                <span class="menu-text">TAG</span>
+            </a>
+            <a href="../Bipolaire/index.html" class="menu-item">
+                <i class="fas fa-arrows-alt-v"></i>
+                <span class="menu-text">Trouble Bipolaire</span>
+            </a>
+            <a href="index.html" class="menu-item active">
+                <i class="fas fa-brain"></i>
+                <span class="menu-text">Personnalité Limite</span>
+            </a>
+        </div>
+    </nav>
+</div>
+
+<!-- ========================== MAIN ========================== -->
+<div class="main-content">
+    <header class="top-header">
+        <div class="breadcrumb-nav">
+            <span class="part">Espace Psychologue</span>
+            <span class="sep">/</span>
+            <span class="active-part" id="breadcrumb-current">Tableau de Bord</span>
+        </div>
+        <div class="header-right">
+            <button class="btn-sm-icon" style="color: var(--danger); margin-right: 8px;" onclick="if(confirm('Êtes-vous sûr de vouloir tout effacer et recommencer à zéro ?')) { localStorage.clear(); window.location.reload(); }" title="Réinitialiser toutes les données (Vider le cache)">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+            <button class="btn-sm-icon" onclick="window.print()" title="Imprimer / Exporter PDF">
+                <i class="fas fa-print"></i>
+            </button>
+            <span id="tpl-status" class="badge" style="background:var(--surface-2);color:var(--text-muted);font-size:0.72rem;padding:6px 10px;border-radius:999px;border:1px solid var(--border);">
+                TPL: app non chargé
+            </span>
+            <div class="user-chip">
+                <div class="avatar">PSY</div>
+                <span class="uname">Clinique Ory+</span>
+            </div>
+        </div>
+    </header>
+
+    <div id="app-view"></div>
+
+    <footer class="main-footer">
+        &copy; <span id="footerYear"></span> Ory<sup>+</sup> — ERP Médical | CLV Tech &nbsp;
+    </footer>
+</div>
+
+<!-- ========================== MODAL CONTAINER ========================== -->
+<div id="modal-root"></div>
+
+<!-- ========================== TOAST CONTAINER ========================== -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<!-- ========================== TEMPLATES ========================== -->
+
+<!-- DOSSIER PATIENT -->
+<template id="tpl-dossier">
+<div>
+    <!-- Consultation médicale -->
+    <div class="panel-card mb-3" id="dossier-consultation-card" style="display:none;">
+        <div class="panel-card-header d-flex justify-content-between align-items-center"
+             style="cursor:pointer;"
+             onclick="const b = document.getElementById('dossier-consultation-area'); const i = this.querySelector('.fa-chevron-down'); if(b.style.display==='none'){b.style.display='block';i.style.transform='rotate(0deg)';app.state.consultationOpen=true;}else{b.style.display='none';i.style.transform='rotate(-90deg)';app.state.consultationOpen=false;}">
+            <h6 class="m-0"><i class="fas fa-user-doctor me-2" style="color:#10b981;"></i>Consultation médicale d'orientation</h6>
+            <i class="fas fa-chevron-down" style="transition:transform 0.2s; color:var(--text-muted);"></i>
+        </div>
+        <div class="panel-card-body" id="dossier-consultation-area"></div>
+    </div>
+
+    <!-- Progression des séances -->
+    <div class="panel-card mb-3">
+        <div class="panel-card-header">
+            <h6><i class="fas fa-list-check me-2 text-primary-c"></i>Progression des séances</h6>
+            <span id="dossier-progress-badge" class="badge" style="background:var(--primary);color:white;font-size:0.7rem;padding:4px 10px;border-radius:20px;"></span>
+        </div>
+        <div class="panel-card-body" style="max-height:600px;overflow-y:auto;">
+            <div class="session-timeline" id="dossier-session-timeline"></div>
+        </div>
+    </div>
+</div>
+</template>
+
+<!-- EXERCICES -->
+<template id="tpl-exercises">
+<div>
+    <div class="section-title"><i class="fas fa-clipboard-list text-primary-c"></i> Exercices — TCD (DBT)</div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="panel-card" style="position:sticky;top:80px;">
+                <div class="panel-card-header">
+                    <h6><i class="fas fa-layer-group me-2 text-primary-c"></i>Catégories</h6>
+                </div>
+                <div class="panel-card-body p-0" id="exercise-category-list"></div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div id="exercise-list-area"></div>
+        </div>
+    </div>
+</div>
+</template>
+
+<!-- SÉANCE -->
+<template id="tpl-session">
+<div class="session-layout">
+    <div class="session-sidebar-panel">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h6><i class="fas fa-calendar-check me-2 text-primary-c"></i>Séance en cours</h6>
+                <span id="session-badge" class="badge" style="background:var(--primary);color:white;font-size:0.7rem;padding:4px 10px;border-radius:20px;"></span>
+            </div>
+            <div class="panel-card-body" id="session-info-area"></div>
+        </div>
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h6><i class="fas fa-clipboard-list me-2" style="color:var(--accent)"></i>Exercices disponibles</h6>
+            </div>
+            <div class="panel-card-body" id="session-exercises-area"></div>
+        </div>
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h6><i class="fas fa-stethoscope me-2 text-primary-c"></i>Échelles cliniques</h6>
+            </div>
+            <div class="panel-card-body" id="session-scales-area"></div>
+        </div>
+    </div>
+    <div>
+        <div class="panel-card mb-3">
+            <div class="panel-card-body" style="padding:1.5rem;">
+                <h4 id="session-main-title" class="fw-800 mb-1" style="color:var(--primary);font-size:1.3rem;"></h4>
+                <p id="session-patient-name" style="font-size:0.82rem;color:var(--text-muted);margin:0;"></p>
+            </div>
+        </div>
+        <div id="session-exercise-render-area"></div>
+        <div class="panel-card mt-3">
+            <div class="panel-card-header">
+                <h6><i class="fas fa-pen-to-square me-2" style="color:var(--accent)"></i>Notes cliniques</h6>
+                <button class="btn-sm-icon" onclick="app.saveNotes()" title="Sauvegarder"><i class="fas fa-save"></i></button>
+            </div>
+            <div class="panel-card-body">
+                <textarea class="notes-textarea" id="clinical-notes" placeholder="Observations cliniques, attitude du patient, éléments marquants de la séance…"></textarea>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+            <button class="btn-ghost" onclick="app.showPanel('dossier')">
+                <i class="fas fa-arrow-left"></i> Retour au dossier
+            </button>
+            <button class="btn-success-custom" id="btn-complete-session" onclick="app.completeCurrentSession()">
+                <i class="fas fa-check-circle"></i> Clôturer la séance
+            </button>
+        </div>
+    </div>
+</div>
+</template>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="static/data.js?v=2.0.3-tpl2"></script>
+<script src="static/protocols.js?v=2.0.5-tpl2"></script>
+<script src="../TAG/static/storage.js?v=2.0.3-tpl2"></script>
+<script src="static/exercises_config.js?v=2.0.5-tpl2"></script>
+<script src="../TAG/static/exercises.js?v=2.0.4-tpl2"></script>
+<script>
+  window.currentTroubleId = "TPL";
+  document.getElementById("footerYear").textContent = new Date().getFullYear();
+</script>
+<script src="static/app.js?v=1.0.5-status"></script>
+</body>
+</html>
