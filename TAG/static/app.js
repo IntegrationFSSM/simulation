@@ -689,9 +689,13 @@ const app = {
                             <label style="font-size:0.82rem;font-weight:700;color:var(--text-muted);">Description</label>
                             <textarea id="edit-custom-ex-desc" class="form-control form-control-sm mt-1" rows="2">${ex.description || ''}</textarea>
                         </div>
-                        <div style="font-size:0.8rem;color:var(--text-muted);">
-                            Les questions ne sont pas éditables pour l’instant (v1).
+                        <div style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:0.82rem;font-weight:700;color:var(--text-muted);">Questions</span>
+                            <button class="btn-ghost" style="font-size:0.75rem;color:var(--primary);" onclick="app.addEditCustomQuestion()">
+                                <i class="fas fa-plus"></i> Ajouter une question
+                            </button>
                         </div>
+                        <div id="edit-custom-ex-questions" style="display:flex;flex-direction:column;gap:8px;"></div>
                     </div>
                     <div style="padding:1rem 1.4rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
                         <button class="btn-ghost" onclick="document.getElementById('modal-root').innerHTML=''">Annuler</button>
@@ -700,6 +704,45 @@ const app = {
                 </div>
             </div>
         `;
+
+        // Seed existing questions
+        this._editCustomQuestionCount = 0;
+        const qs = Array.isArray(ex.questions) ? ex.questions : [];
+        if (qs.length) {
+            qs.forEach(q => this.addEditCustomQuestion(q));
+        } else {
+            this.addEditCustomQuestion();
+        }
+    },
+
+    _editCustomQuestionCount: 0,
+    addEditCustomQuestion(seed = null) {
+        const container = document.getElementById('edit-custom-ex-questions');
+        if (!container) return;
+        const idx = ++this._editCustomQuestionCount;
+        const div = document.createElement('div');
+        div.id = `ecq-${idx}`;
+        div.style.cssText = 'background:var(--surface-2);border-radius:var(--r-sm);padding:10px 12px;display:flex;flex-direction:column;gap:6px;';
+        const text = (seed && seed.text) ? seed.text : '';
+        const type = (seed && seed.type) ? seed.type : 'text';
+        const safeText = String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+        div.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.75rem;font-weight:700;color:var(--primary);">Question ${idx}</span>
+                <button class="btn-sm-icon" onclick="document.getElementById('ecq-${idx}').remove()" title="Supprimer"><i class="fas fa-trash" style="color:var(--danger);font-size:0.7rem;"></i></button>
+            </div>
+            <input type="text" class="form-control form-control-sm ecq-text" placeholder="Libellé de la question..." value="${safeText}" />
+            <div style="display:flex;align-items:center;gap:8px;">
+                <label style="font-size:0.75rem;font-weight:600;color:var(--text-muted);white-space:nowrap;">Type :</label>
+                <select class="form-select form-select-sm ecq-type" style="font-size:0.75rem;max-width:200px;">
+                    <option value="text" ${type === 'text' ? 'selected' : ''}>Réponse libre (texte)</option>
+                    <option value="likert5" ${type === 'likert5' ? 'selected' : ''}>Likert 0–5</option>
+                    <option value="likert10" ${type === 'likert10' ? 'selected' : ''}>Likert 0–10</option>
+                    <option value="yesno" ${type === 'yesno' ? 'selected' : ''}>Oui / Non</option>
+                </select>
+            </div>
+        `;
+        container.appendChild(div);
     },
 
     async saveEditedCustomExercise(exerciseId) {
@@ -708,8 +751,18 @@ const app = {
         const title = document.getElementById('edit-custom-ex-title')?.value.trim();
         const desc = document.getElementById('edit-custom-ex-desc')?.value.trim();
         if (!title) { this.showToast("Le titre est obligatoire.", "warning"); return; }
+
+        const questions = [];
+        document.querySelectorAll('#edit-custom-ex-questions > div').forEach(div => {
+            const text = div.querySelector('.ecq-text')?.value.trim();
+            const type = div.querySelector('.ecq-type')?.value || 'text';
+            if (text) questions.push({ text, type });
+        });
+        if (questions.length === 0) { this.showToast('Ajoutez au moins une question.', 'warning'); return; }
+
         p.customExercises[exerciseId].title = title;
         p.customExercises[exerciseId].description = desc || '';
+        p.customExercises[exerciseId].questions = questions;
         await LocalAPI.savePatientProgress(p);
         document.getElementById('modal-root').innerHTML = '';
         this.showToast("Exercice modifié.", "success");
