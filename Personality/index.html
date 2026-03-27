@@ -9,8 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Module design system (standalone, no TAG dependency) -->
-    <link rel="stylesheet" href="static/styles.css?v=2.1.0">
+    <!-- Shared design system (Unified Styling) -->
+    <link rel="stylesheet" href="../TAG/static/styles.css?v=2.2.0">
+    <!-- Module tweaks and overrides (colors) -->
+    <link rel="stylesheet" href="static/styles.css?v=2.2.0">
 </head>
 <body>
 
@@ -33,7 +35,7 @@
                 Protocoles Cliniques
             </div>
             <a href="../TAG/index.html" class="menu-item">
-                <i class="fas fa-wind"></i>
+                <i class="fas fa-brain"></i>
                 <span class="menu-text">TAG</span>
             </a>
             <a href="../Bipolaire/index.html" class="menu-item">
@@ -41,7 +43,7 @@
                 <span class="menu-text">Trouble Bipolaire</span>
             </a>
             <a href="index.html" class="menu-item active">
-                <i class="fas fa-brain"></i>
+                <i class="fas fa-user-shield"></i>
                 <span class="menu-text">Personnalité Limite</span>
             </a>
         </div>
@@ -73,12 +75,104 @@
         </div>
     </header>
 
-    <div id="app-view"></div>
+    <div id="level-1-view" class="page-content">
+        <div class="section-header text-center" style="margin-bottom: 40px; margin-top: 20px;">
+            <h1 style="font-size:2rem;font-weight:800;color:var(--text);"><i class="fas fa-user-shield" style="color:var(--tpl-purple); margin-right:12px;"></i>Trouble de la Personnalité Limite</h1>
+            <p style="font-size:1.05rem;color:var(--text-muted);max-width:650px;margin:12px auto 0;">Veuillez sélectionner l'approche thérapeutique et la modalité de prise en charge appropriée pour votre patient.</p>
+        </div>
+
+        <div class="approach-grid">
+            <!-- DBT -->
+            <div class="approach-card" id="card-dbt" style="--card-color:var(--tpl-teal); --card-bg:var(--tpl-teal-light);" onclick="selectApproach('DBT')">
+                <div class="card-icon"><i class="fas fa-balance-scale"></i></div>
+                <h3>Thérapie Comportementale Dialectique (TCD)</h3>
+                <p>Protocole standard de M. Linehan axé sur la tolérance à la détresse, la régulation des émotions et l'efficacité interpersonnelle.</p>
+                <div class="badge-tag">Protocole Complet</div>
+                <div id="dbt-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
+                    <button class="btn-success-custom w-100 mb-2" onclick="event.stopPropagation(); launchDashboard('DBT', 'Individuel')" style="background:var(--tpl-teal); padding:10px;"><i class="fas fa-user me-2"></i> TCD Individuelle</button>
+                    <button class="btn-ghost w-100" onclick="event.stopPropagation(); launchDashboard('DBT', 'Groupe')" style="padding:10px;"><i class="fas fa-users me-2"></i> Entraînement aux Compétences (Groupe)</button>
+                </div>
+            </div>
+
+            <!-- SCHEMA -->
+            <div class="approach-card" id="card-schema" style="--card-color:var(--tpl-purple); --card-bg:var(--tpl-purple-light);" onclick="selectApproach('SCHEMA')">
+                <div class="card-icon"><i class="fas fa-project-diagram"></i></div>
+                <h3>Thérapie des Schémas</h3>
+                <p>Approche de J. Young ciblant les schémas précoces inadaptés et la restructuration profonde des modes cognitifs.</p>
+                <div class="badge-tag" style="background:#f1f5f9;color:var(--text-muted);">En développement</div>
+                <div id="schema-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
+                    <button class="btn-success-custom w-100 mb-2" onclick="event.stopPropagation(); launchDashboard('SCHEMA', 'Individuel')" style="background:var(--tpl-purple); padding:10px;"><i class="fas fa-user me-2"></i> Schémas Individuel</button>
+                    <button class="btn-ghost w-100" onclick="event.stopPropagation(); launchDashboard('SCHEMA', 'Groupe')" style="padding:10px;"><i class="fas fa-users me-2"></i> Groupe Schémas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-view" style="display:none;"></div>
 
     <footer class="main-footer">
         &copy; <span id="footerYear"></span> Ory<sup>+</sup> — ERP Médical | CLV Tech &nbsp;
     </footer>
 </div>
+
+<script>
+function selectApproach(approach) {
+    document.getElementById('dbt-modalities').style.display = approach === 'DBT' ? 'block' : 'none';
+    document.getElementById('schema-modalities').style.display = approach === 'SCHEMA' ? 'block' : 'none';
+    
+    const cardDbt = document.getElementById('card-dbt');
+    const cardSchema = document.getElementById('card-schema');
+    
+    if (approach === 'DBT') {
+        cardDbt.style.borderColor = 'var(--tpl-teal)';
+        cardDbt.style.transform = 'translateY(-4px)';
+        cardDbt.style.boxShadow = 'var(--shadow-lg)';
+        cardSchema.style.borderColor = 'var(--border)';
+        cardSchema.style.transform = 'none';
+        cardSchema.style.boxShadow = 'var(--shadow-sm)';
+    } else {
+        cardSchema.style.borderColor = 'var(--tpl-purple)';
+        cardSchema.style.transform = 'translateY(-4px)';
+        cardSchema.style.boxShadow = 'var(--shadow-lg)';
+        cardDbt.style.borderColor = 'var(--border)';
+        cardDbt.style.transform = 'none';
+        cardDbt.style.boxShadow = 'var(--shadow-sm)';
+    }
+}
+
+function launchDashboard(approach, modality) {
+    if (approach === 'SCHEMA') {
+        // Optionnel : un petit message pour indiquer que le protocole Schéma n'est pas encore complet
+        app.showToast("Ouverture de l'environnement Schéma (" + modality + ") - Mode aperçu", "info");
+    } else {
+        app.showToast("Ouverture de l'environnement TCD (" + modality + ")", "success");
+    }
+    
+    // Switch dynamic protocol based on modality
+    if (approach === 'DBT' && modality === 'Groupe') {
+        window.currentTroubleId = 'TPL_GROUP';
+    } else {
+        window.currentTroubleId = 'TPL';
+    }
+    
+    // Update the master PROTOCOL pointer so app.js uses the right schema
+    if (window.PROTOCOLS_DB && window.PROTOCOLS_DB[window.currentTroubleId]) {
+        window.PROTOCOL = window.PROTOCOLS_DB[window.currentTroubleId];
+    }
+    
+    // Transition
+    document.getElementById('level-1-view').style.display = 'none';
+    const appView = document.getElementById('app-view');
+    appView.style.display = 'block';
+    appView.style.animation = 'fadeIn 0.3s ease';
+
+    // Rendre le dossier actif si app est déjà initialisé
+    if (window.app && app.state && app.state.selectedPatient) {
+        // Force fully reloading the patient data with the new PROTOCOL context (16 vs 55 sessions)
+        app.selectPatient(app.state.selectedPatient.id);
+    }
+}
+</script>
 
 <!-- ========================== MODAL CONTAINER ========================== -->
 <div id="modal-root"></div>
@@ -200,6 +294,6 @@
   window.currentTroubleId = "TPL";
   document.getElementById("footerYear").textContent = new Date().getFullYear();
 </script>
-<script src="static/app.js?v=1.0.5-status"></script>
+<script src="../TAG/static/app.js?v=2.2.0"></script>
 </body>
 </html>

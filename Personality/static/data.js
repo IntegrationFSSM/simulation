@@ -26,11 +26,11 @@ const SCALES = {
             "Quand je suis bouleversé(e), je mets du temps à m'en remettre."
         ],
         options: ["Presque jamais (1)", "Parfois (2)", "La moitié du temps (3)", "La plupart du temps (4)", "Presque toujours (5)"],
-        maxScore: 80,
+        maxScore: 64,
         interpretation: [
             { min: 16, max: 35, label: "Bonne régulation", color: "success" },
             { min: 36, max: 50, label: "Difficultés modérées", color: "warning" },
-            { min: 51, max: 80, label: "Désrégulation sévère", color: "danger" }
+            { min: 51, max: 64, label: "Désrégulation sévère", color: "danger" }
         ]
     },
     CRISIS: {
@@ -131,7 +131,9 @@ const simulationData = {
     },
 
     getSessionsForPatient(patient) {
-        return this.buildSessions(patient?.totalSessions);
+        // Use the protocol's default if available, to seamlessly swap between 55 (Individuel) and 16 (Groupe)
+        const activeCount = window.PROTOCOL?.default_total_sessions || patient?.totalSessions || 55;
+        return this.buildSessions(activeCount);
     }
 };
 

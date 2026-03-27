@@ -62,5 +62,63 @@ window.PROTOCOLS_DB = {
                 "guides": []
             }
         ]
+    },
+    "TPL_GROUP": {
+        "trouble_id": "TPL_GROUP",
+        "trouble_code_icd11": "6D60",
+        "trouble_name": "TPL — Entraînement aux Compétences (Groupe)",
+        "default_total_sessions": 16,
+        "phases": [
+            {
+                "phase_id": "group_module_1",
+                "phase_name": "Module 1 : Pleine Conscience",
+                "recommended_sessions": [1, 2],
+                "assessments": [{ "tool_id": "DERS", "required": true }],
+                "worksheets": [],
+                "guides": ["Guide_Module_1"]
+            },
+            {
+                "phase_id": "group_module_2",
+                "phase_name": "Module 2 : Régulation des Émotions",
+                "recommended_sessions": [3, 4, 5, 6, 7, 8, 9],
+                "assessments": [{ "tool_id": "DERS", "required": true }],
+                "worksheets": [],
+                "guides": ["Guide_Module_2"]
+            },
+            {
+                "phase_id": "group_module_3",
+                "phase_name": "Module 3 : Tolérance à la Détresse",
+                "recommended_sessions": [10, 11, 12, 13],
+                "assessments": [{ "tool_id": "DERS", "required": true }],
+                "worksheets": [],
+                "guides": ["Guide_Module_3"]
+            },
+            {
+                "phase_id": "group_module_4",
+                "phase_name": "Module 4 : Efficacité Interpersonnelle",
+                "recommended_sessions": [14, 15, 16],
+                "assessments": [{ "tool_id": "DERS", "required": true }],
+                "worksheets": [],
+                "guides": ["Guide_Module_4"]
+            }
+        ],
+        "session_worksheets": {
+            1: ["DBT_Fiche_1"],
+            2: ["DBT_Fiche_2", "DBT_Fiche_3"],
+            3: ["DBT_Fiche_4_5"],
+            4: ["DBT_Fiche_6"],
+            5: ["DBT_Fiche_7"],
+            6: ["DBT_Fiche_8"],
+            7: ["DBT_Fiche_10", "DBT_Fiche_11"],
+            8: ["DBT_Fiche_12"],
+            9: [], 
+            10: ["DBT_Fiche_20"],
+            11: ["DBT_Fiche_13", "DBT_Fiche_23"],
+            12: ["DBT_Fiche_13_accepte"],
+            13: ["DBT_Fiche_21", "DBT_Fiche_22"],
+            14: ["DBT_Fiche_24"],
+            15: ["DBT_Fiche_25", "DBT_Fiche_26"],
+            16: ["DBT_Fiche_27", "DBT_Fiche_28"]
+        }
     }
 };
