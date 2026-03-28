@@ -23,20 +23,36 @@ const EXERCISES = [
         resourcePdf: 'Resources/Guide/tag-dugas-brochure.pdf',
         description: "Document explicatif sur le trouble d'anxiété généralisée, ses symptômes et le rôle de l'évitement.",
         content: `
-            <h5>Introduction</h5>
-            <p>Le trouble d'anxiété généralisée est caractérisé par une anxiété et des inquiétudes envahissantes, excessives et incontrôlables. L'anxiété et l'inquiétude sont décrites comme <strong>généralisées</strong> car elles peuvent couvrir un certain nombre de situations : relations, travail, santé, sécurité financière.</p>
-            <h5>Les symptômes</h5>
-            <p>L'anxiété généralisée se manifeste sous forme d'inquiétudes excessives et incontrôlables. L'anxieux se pose des questions hypothétiques (<em>« Et si…? »</em>) et les pensées déclenchées sont à l'origine de son anxiété.</p>
-            <ol>
-                <li><strong>La situation</strong> — Le déclencheur (événement ou souvenir)</li>
-                <li><strong>Les questions « Si…? »</strong> — La porte d'entrée aux inquiétudes</li>
-                <li><strong>Les inquiétudes</strong> — Pensées en chaîne sur des événements négatifs futurs</li>
-                <li><strong>L'anxiété</strong> — Malaise physique (tensions, fatigue, insomnie) et psychologique (irritabilité, nervosité)</li>
-                <li><strong>La démoralisation et l'épuisement</strong> — Conséquences à moyen/long terme</li>
-            </ol>
-            <h5>Le rôle de l'évitement</h5>
-            <p>L'évitement comportemental, cognitif et la recherche de réassurance maintiennent l'anxiété à long terme car ils empêchent d'apprendre que l'anxiété finit par passer et que les catastrophes appréhendées ne surviennent pas.</p>
+<div class="exercise-info-content">
+    <h5><i class="fas fa-book-open me-2" style="color:#06b6d4"></i>Compréhension du TAG</h5>
+    <p>Le trouble d'anxiété généralisée est caractérisé par une anxiété et des inquiétudes envahissantes, excessives et incontrôlables.</p>
+    <h6>Le cycle de l'anxiété :</h6>
+    <ul>
+        <li><strong>La situation et le "Et si...?" :</strong> Face à une situation, l'individu se pose des questions à répétition (et si?) générant ainsi un flot d'inquiétudes.</li>
+        <li><strong>Définition de l'inquiétude :</strong> Il s'agit d'un ensemble de pensées qui s'enchaînent, au sujet d'événements négatifs futurs, et qui est accompagné d'anxiété. L'inquiétude n'en retiendra que les côtés négatifs, contrairement à la planification.</li>
+        <li><strong>Les conséquences :</strong> L'anxiété se manifeste sur le plan somatique (tensions musculaires, fatigue, insomnie) et psychologique (irritabilité, nervosité), suivie de démoralisation et d'épuisement.</li>
+    </ul>
+    <h6>Les deux types d'inquiétudes :</h6>
+    <p>Il est crucial de distinguer celles qui portent sur un problème actuel qui existe déjà (ex: mon chauffe-eau est brisé) et celles qui portent sur un problème potentiel ou éventuel (ex: si mes parents prennent l'avion, il pourrait s'écraser).</p>
+</div>
         `
+    },
+    {
+        id: 'ex_7_9_1b', ref: '7.9.1b',
+        title: 'Principes de la TCC pour le TAG',
+        category: 'psychoeducation', type: 'info',
+        defaultSessions: [1],
+        description: "Introduction au fonctionnement de la thérapie et au rôle de l'évitement.",
+        content: `<div class="exercise-info-content">
+        <h5><i class="fas fa-brain me-2" style="color:#06b6d4"></i>Les principes de la TCC</h5>
+        <p>La TCC étudie l'interrelation entre les émotions, les pensées et les comportements.</p>
+        <ul>
+            <li><strong>Collaboration :</strong> Elle s'appuie sur une collaboration active entre le patient (qui connait bien le problème) et le thérapeute (qui connait bien la thérapie).</li>
+            <li><strong>Modalités :</strong> Elle est centrée sur le moment présent, et il s'agit d'une thérapie brève et structurée de 15 sessions. Le patient devra mettre en pratique les techniques enseignées entre les séances.</li>
+        </ul>
+        <h6>Le rôle de l'évitement :</h6>
+        <p>Pour éviter l'anxiété, l'individu évite ou fuit les situations appréhendées, ce qui l'empêche de confronter sa peur et de réaliser que rien de catastrophique ne se produit. Il peut aussi tenter d'éviter de faire face à l'incertitude en se rassurant ou en s'inquiétant, ce qui entretient le problème.</p>
+    </div>`
     },
     {
         id: 'ex_7_9_2', ref: '7.9.2',
@@ -147,25 +163,34 @@ const EXERCISES = [
         defaultSessions: [4, 5],
         description: "Comprendre l'intolérance à l'incertitude et comment l'action permet de la modifier.",
         content: `
-            <h5>Qu'est-ce que l'intolérance à l'incertitude ?</h5>
-            <p>C'est la difficulté à accepter qu'un événement négatif puisse se produire malgré sa faible probabilité. L'enchaînement des questions « Si…? » nous amène à entrevoir de plus en plus d'aspects négatifs, augmentant l'anxiété.</p>
-            <h5>Comment réagit-on face à l'incertitude ?</h5>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;">
-                <div style="background:#fef3c7;border-radius:8px;padding:1rem;">
-                    <strong style="color:#92400e;">Évitement</strong>
-                    <ul style="margin:0.5rem 0 0;padding-left:1.2rem;font-size:0.85rem;">
-                        <li>Procrastiner</li><li>Trouver des obstacles artificiels</li><li>S'engager partiellement</li><li>S'éparpiller</li>
-                    </ul>
-                </div>
-                <div style="background:#fee2e2;border-radius:8px;padding:1rem;">
-                    <strong style="color:#991b1b;">Surréaction</strong>
-                    <ul style="margin:0.5rem 0 0;padding-left:1.2rem;font-size:0.85rem;">
-                        <li>Ne pas déléguer</li><li>Revérifier</li><li>Rechercher plus d'information</li><li>Chercher réassurance</li>
-                    </ul>
-                </div>
-            </div>
-            <h5>Solution : augmenter la tolérance par l'action</h5>
-            <p>Le comportement est un moyen privilégié pour modifier ses attitudes. On doit agir <em>« comme si »</em> on était tolérant à l'incertitude. La motivation suit l'action, pas l'inverse. Commencer petit, augmenter graduellement.</p>
+<div class="exercise-info-content">
+    <h5><i class="fas fa-exclamation-triangle me-2" style="color:#f59e0b"></i>L'intolérance à l'incertitude</h5>
+    <p>L'intolérance à l'incertitude (i.e. la non-acceptation de la possibilité, même infime, qu'un événement négatif puisse se produire) est un facteur central dans le maintien du TAG. Il s'agit d'une sorte d'allergie à l'incertitude.</p>
+    <h6>Les deux réactions dysfonctionnelles :</h6>
+    <p>Pour augmenter leur sentiment de certitude, les individus tentent d'éliminer l'incertitude en l'évitant ou en réagissant de façon excessive.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;">
+        <div style="background:#fef3c7;border-radius:8px;padding:1rem;">
+            <strong style="color:#92400e;">L'Évitement</strong>
+            <ul style="margin:0.5rem 0 0;padding-left:1.2rem;font-size:0.85rem;">
+                <li>Procrastiner</li>
+                <li>Trouver des obstacles artificiels</li>
+                <li>S'engager partiellement</li>
+                <li>S'éparpiller</li>
+            </ul>
+        </div>
+        <div style="background:#fee2e2;border-radius:8px;padding:1rem;">
+            <strong style="color:#991b1b;">La Surréaction</strong>
+            <ul style="margin:0.5rem 0 0;padding-left:1.2rem;font-size:0.85rem;">
+                <li>Ne pas déléguer</li>
+                <li>Revérifier</li>
+                <li>Rechercher plus d'information</li>
+                <li>Chercher la réassurance</li>
+            </ul>
+        </div>
+    </div>
+    <h6>La solution par l'action :</h6>
+    <p>Le comportement est un moyen privilégié pour modifier ses attitudes et sa façon de penser. Le principe est d'agir comme si on était tolérant, et la plus grande motivation ne précède pas l'action mais la suit.</p>
+</div>
         `
     },
     {
@@ -232,23 +257,16 @@ const EXERCISES = [
         defaultSessions: [7, 8],
         description: "Présentation de la démarche structurée de résolution de problèmes en 5 étapes.",
         content: `
-            <h5>Première étape : L'orientation face aux problèmes</h5>
-            <p>L'orientation inefficace se manifeste par : ne pas reconnaître le problème, trouver anormal d'avoir un problème, ou éviter/trop réagir face aux problèmes.</p>
-            <h5>Solutions pour une meilleure orientation</h5>
-            <ul>
-                <li>Utiliser ses émotions comme indices pour reconnaître les problèmes</li>
-                <li>Normaliser le fait d'avoir des problèmes</li>
-                <li>Voir les problèmes comme des <strong>défis</strong> plutôt que des menaces</li>
-                <li>S'arrêter et réfléchir (<em>stop and think</em>) plutôt que d'agir en urgence</li>
-            </ul>
-            <h5>Deuxième étape : La démarche de résolution</h5>
-            <ol>
-                <li><strong>Définir le problème</strong> — En termes concrets (Qui ? Quoi ? Quand ?)</li>
-                <li><strong>Formuler un objectif</strong> — Questions de type « comment » plutôt que « pourquoi »</li>
-                <li><strong>Identifier des solutions</strong> — Brainstorming (quantité, report de l'évaluation, variété)</li>
-                <li><strong>Prendre une décision</strong> — Évaluer avantages/inconvénients, pas de solution parfaite</li>
-                <li><strong>Appliquer et évaluer</strong> — Mettre en œuvre et vérifier les résultats</li>
-            </ol>
+<div class="exercise-info-content">
+    <h5><i class="fas fa-lightbulb me-2" style="color:#10b981"></i>L'orientation inefficace face aux problèmes</h5>
+    <p>Les inquiétudes qui concernent un problème actuel sont en grande partie entretenues par l'orientation inefficace face aux problèmes.</p>
+    <h6>Les manifestations de l'orientation inefficace :</h6>
+    <ul>
+        <li><strong>Ne pas voir le vrai problème :</strong> On s'inquiète sans voir la cause réelle. <em>Solution :</em> Utiliser ses émotions négatives (tristesse, colère) comme indices pour reconnaître la présence d'un problème.</li>
+        <li><strong>Croire qu'il est anormal d'avoir un problème :</strong> L'individu se culpabilise (déficit personnel) ou s'indigne (injustice). <em>Solution :</em> Normaliser le fait d'avoir des problèmes, identifier tous les facteurs impliqués, et cultiver l'indulgence.</li>
+        <li><strong>Éviter ou trop réagir (sentiment d'urgence) :</strong> Le problème est considéré comme une menace. <em>Solution :</em> Considérer que les problèmes sont des défis plutôt que des menaces (continuum Menace/Défi). Il faut s'arrêter et considérer le problème plutôt que d'agir impulsivement.</li>
+    </ul>
+</div>
         `
     },
     {
@@ -338,21 +356,16 @@ const EXERCISES = [
         defaultSessions: [11],
         description: "Comprendre l'évitement cognitif, la neutralisation et le principe d'exposition par habituation.",
         content: `
-            <h5>L'évitement cognitif et la neutralisation</h5>
-            <p>Les inquiétudes hypothétiques sont entretenues par l'évitement cognitif : chasser les pensées effrayantes, se distraire… Mais par phénomène de <strong>rebond</strong>, plus on essaie de ne pas penser à quelque chose, plus on est envahi.</p>
-            <h5>Procédure d'exposition en imagination</h5>
-            <ol type="a">
-                <li><strong>Choisir</strong> une inquiétude hypothétique</li>
-                <li><strong>Composer un texte</strong> au présent, au « je », en langage parlé, décrivant la peur avec les 5 sens. Pas d'éléments rassurants (neutralisation).</li>
-                <li><strong>S'exposer</strong> en lisant le texte et en visualisant pendant au moins 30 minutes. L'anxiété monte, atteint un plateau, puis redescend (habituation).</li>
-                <li><strong>Remplir la fiche d'exposition</strong> après chaque séance.</li>
-            </ol>
-            <h5>Règles importantes</h5>
-            <ul>
-                <li>Ne pas neutraliser (se distraire, se rassurer, ouvrir les yeux)</li>
-                <li>Minimum 30 minutes, 5 jours par semaine</li>
-                <li>Commencer par le thème le plus important</li>
-            </ul>
+<div class="exercise-info-content">
+    <h5><i class="fas fa-eye me-2" style="color:#ef4444"></i>L'évitement, la neutralisation et l'Ours Blanc</h5>
+    <p>L'exposition en imagination s'adresse aux problèmes hypothétiques (improbables, flous ou lointains).</p>
+    <h6>Le piège de la suppression : Le test de l'ours blanc</h6>
+    <p>Dans les prochaines trente secondes, essayez de ne pas penser à un ours blanc. Plus on essaie de ne pas penser à quelque chose, plus on est envahi par la pensée. Il est donc vain de refouler les pensées anxiogènes car elles reviennent en force.</p>
+    <h6>L'illusion de la neutralisation</h6>
+    <p>La neutralisation (ex: se distraire, se parler pour se rassurer, chasser les pensées) amène une détérioration de la situation. La peur sera moins vive à court terme mais pas à long terme, puisque le fait de ne pas être totalement présent empêche de digérer la peur (traitement émotionnel).</p>
+    <h6>La solution par l'habituation</h6>
+    <p>L'exposition aux scénarios catastrophiques permet de réaliser que l'anxiété risque de croître, d'atteindre un plateau, puis de redescendre lentement. À chaque exposition, le niveau d'anxiété diminuera plus rapidement par habituation.</p>
+</div>
         `
     },
     {
@@ -427,22 +440,18 @@ const EXERCISES = [
         defaultSessions: [15],
         description: "Devenir son propre thérapeute : reconnaître les inquiétudes, appliquer les outils, distinguer chute et rechute.",
         content: `
-            <h5>Devenir votre propre thérapeute</h5>
-            <ol>
-                <li><strong>Prise de conscience</strong> — Identifier les inquiétudes excessives, distinguer le type (problème actuel ou hypothétique)</li>
-                <li><strong>Se questionner</strong> sur l'utilité de s'inquiéter</li>
-                <li><strong>Problème actuel</strong> → Résolution de problèmes (définir, brainstorm, choisir, appliquer, évaluer)</li>
-                <li><strong>Problème hypothétique</strong> → Exposition cognitive (scénario, 30 min/jour)</li>
-                <li><strong>Tolérance à l'incertitude</strong> → Actions quotidiennes</li>
-            </ol>
-            <h5>Chute vs Rechute</h5>
-            <p>Une <strong>chute</strong> (fluctuation normale) n'est pas une <strong>rechute</strong>. Avoir plus d'inquiétudes de temps en temps est normal. C'est une occasion de mettre en pratique les techniques apprises.</p>
-            <h5>Conseils</h5>
-            <ul>
-                <li>Relire le manuel une fois par mois</li>
-                <li>Se récompenser pour ses efforts</li>
-                <li>Les périodes difficiles sont des occasions d'apprentissage</li>
-            </ul>
+<div class="exercise-info-content">
+    <h5><i class="fas fa-shield-heart me-2" style="color:#6366f1"></i>Prévention de la rechute : Devenir son propre thérapeute</h5>
+    <p>L'objectif final est que le patient devienne son propre thérapeute en appliquant les techniques enseignées dès qu'il présente des inquiétudes excessives.</p>
+    <h6>Résumé décisionnel des compétences :</h6>
+    <ul>
+        <li><strong>Problème actuel :</strong> Se questionner sur l'utilité de s'inquiéter, puis effectuer une résolution de problèmes structurée.</li>
+        <li><strong>Problème hypothétique :</strong> S'exposer par écrit aux pires inquiétudes, car l'exposition permet de tolérer l'anxiété et d'augmenter la tolérance à l'incertitude.</li>
+    </ul>
+    <h6>Chute vs Rechute</h6>
+    <p>Le patient doit faire la différence entre les fluctuations normales du niveau d'inquiétude et une rechute. Il faut éviter de dramatiser si on note la présence de plusieurs inquiétudes concomitantes, mais on ne doit pas non plus les ignorer.</p>
+    <p>Lors des périodes difficiles, on peut considérer qu'il s'agit d'une belle occasion de revoir les notions apprises et de les appliquer à la situation. C'est une façon de se protéger de la rechute.</p>
+</div>
         `
     },
     {
@@ -508,7 +517,7 @@ function getExerciseById(id) {
 
 const PROTOCOL_TOOL_MAP = {
     "Guide_Modele_TAG": ['ex_7_9_1', 'ex_7_9_2'],
-    "Guide_Principes_TCC": [],
+    "Guide_Principes_TCC": ['ex_7_9_1b'],
     "Carnet_AutoEnregistrement_Inquietudes": ['ex_7_9_3'],
     "Avantages_Desavantages_Inquietudes": ['ex_7_9_6'],
     "Exercice_Avocat_Du_Diable": ['ex_7_9_4', 'ex_7_9_7'],

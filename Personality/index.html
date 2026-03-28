@@ -66,7 +66,7 @@
                 <i class="fas fa-print"></i>
             </button>
             <span id="tpl-status" class="badge" style="background:var(--surface-2);color:var(--text-muted);font-size:0.72rem;padding:6px 10px;border-radius:999px;border:1px solid var(--border);">
-                TPL: app non chargé
+                Environnement Clinique
             </span>
             <div class="user-chip">
                 <div class="avatar">PSY</div>
@@ -99,7 +99,6 @@
                 <div class="card-icon"><i class="fas fa-project-diagram"></i></div>
                 <h3>Thérapie des Schémas</h3>
                 <p>Approche de J. Young ciblant les schémas précoces inadaptés et la restructuration profonde des modes cognitifs.</p>
-                <div class="badge-tag" style="background:#f1f5f9;color:var(--text-muted);">En développement</div>
                 <div id="schema-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
                     <button class="btn-success-custom w-100 mb-2" onclick="event.stopPropagation(); launchDashboard('SCHEMA', 'Individuel')" style="background:var(--tpl-purple); padding:10px;"><i class="fas fa-user me-2"></i> Schémas Individuel</button>
                     <button class="btn-ghost w-100" onclick="event.stopPropagation(); launchDashboard('SCHEMA', 'Groupe')" style="padding:10px;"><i class="fas fa-users me-2"></i> Groupe Schémas</button>
@@ -148,9 +147,46 @@ function launchDashboard(approach, modality) {
         app.showToast("Ouverture de l'environnement TCD (" + modality + ")", "success");
     }
     
+    // Build the clinical environment based on approach
+    if (approach === 'DBT') {
+        EXERCISE_CATEGORIES = window.ALL_CATEGORIES.filter(c => c.id !== 'schema_therapy');
+        EXERCISES = window.ALL_EXERCISES.filter(e => e.category !== 'schema_therapy');
+        
+        if (window.ALL_SCALES && window.simulationData) {
+            window.simulationData.scales = {
+                DERS: window.ALL_SCALES.DERS,
+                CRISIS: window.ALL_SCALES.CRISIS
+            };
+        }
+        
+        let titleSpan = document.getElementById('tpl-exercises').content.querySelector('#exercises-title-text');
+        if(titleSpan) titleSpan.textContent = "Exercices — TCD (DBT)";
+        
+    } else if (approach === 'SCHEMA') {
+        EXERCISE_CATEGORIES = window.ALL_CATEGORIES.filter(c => c.id === 'schema_therapy');
+        EXERCISES = window.ALL_EXERCISES.filter(e => e.category === 'schema_therapy');
+        
+        if (window.ALL_SCALES && window.simulationData) {
+            window.simulationData.scales = {
+                YSQ: window.ALL_SCALES.YSQ,
+                YPI: window.ALL_SCALES.YPI,
+                COMPENSATION: window.ALL_SCALES.COMPENSATION,
+                BDI: window.ALL_SCALES.BDI,
+                BAI: window.ALL_SCALES.BAI
+            };
+        }
+
+        let titleSpan = document.getElementById('tpl-exercises').content.querySelector('#exercises-title-text');
+        if(titleSpan) titleSpan.textContent = "Exercices — Régulation des Schémas";
+    }
+
     // Switch dynamic protocol based on modality
     if (approach === 'DBT' && modality === 'Groupe') {
         window.currentTroubleId = 'TPL_GROUP';
+    } else if (approach === 'SCHEMA' && modality === 'Individuel') {
+        window.currentTroubleId = 'SCHEMA_INDIVIDUEL';
+    } else if (approach === 'SCHEMA' && modality === 'Groupe') {
+        window.currentTroubleId = 'SCHEMA_GROUP';
     } else {
         window.currentTroubleId = 'TPL';
     }
@@ -212,7 +248,7 @@ function launchDashboard(approach, modality) {
 <!-- EXERCICES -->
 <template id="tpl-exercises">
 <div>
-    <div class="section-title"><i class="fas fa-clipboard-list text-primary-c"></i> Exercices — TCD (DBT)</div>
+    <div class="section-title"><i class="fas fa-clipboard-list text-primary-c"></i> <span id="exercises-title-text">Outils Cliniques</span></div>
     <div class="row g-3">
         <div class="col-md-4">
             <div class="panel-card" style="position:sticky;top:80px;">
@@ -285,15 +321,15 @@ function launchDashboard(approach, modality) {
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="static/data.js?v=2.0.3-tpl2"></script>
-<script src="static/protocols.js?v=2.0.5-tpl2"></script>
-<script src="../TAG/static/storage.js?v=2.0.3-tpl2"></script>
-<script src="static/exercises_config.js?v=2.0.5-tpl2"></script>
-<script src="../TAG/static/exercises.js?v=2.0.4-tpl2"></script>
+<script src="static/data.js?v=2.0.8-tpl"></script>
+<script src="static/protocols.js?v=2.0.11-tpl"></script>
+<script src="../TAG/static/storage.js?v=2.0.6-tpl"></script>
+<script src="static/exercises_config.js?v=2.0.11-tpl"></script>
+<script src="../TAG/static/exercises.js?v=2.0.5-tpl"></script>
 <script>
   window.currentTroubleId = "TPL";
   document.getElementById("footerYear").textContent = new Date().getFullYear();
 </script>
-<script src="../TAG/static/app.js?v=2.2.0"></script>
+<script src="../TAG/static/app.js?v=2.3.0"></script>
 </body>
 </html>
