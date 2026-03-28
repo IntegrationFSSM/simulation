@@ -131,7 +131,7 @@ window.PROTOCOLS_DB = {
                     { "tool_id": "BAI", "required": true }
                 ],
                 "worksheets": [],
-                "guides": ["Schema_Guide_Indiv_1"]
+                "guides": ["Schema_Guide_Indiv_1", "Schema_Guide_Patient"]
             },
             {
                 "phase_id": "schema_phase_2_active",
@@ -155,10 +155,10 @@ window.PROTOCOLS_DB = {
             }
         ],
         "session_worksheets": {
-            1: ["Schema_Guide_Patient"],
-            2: ["Schema_Guide_Patient"],
-            3: ["Schema_Guide_Patient"],
-            4: ["Schema_Guide_Patient"],
+            1: [],
+            2: [],
+            3: [],
+            4: [],
             5: [],
             6: ["Schema_Test_Historique", "Schema_Diary"],
             7: ["Schema_Test_Historique", "Schema_Diary"],
