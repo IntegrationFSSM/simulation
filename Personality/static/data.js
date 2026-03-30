@@ -150,7 +150,7 @@ const SCALES = {
         interpretation: [
             { min: 16, max: 38, label: "Environnement parental sain", color: "success" },
             { min: 39, max: 64, label: "Carences parentales modérées", color: "warning" },
-            { min: 65, max: 96, label: "Carences parentales significatives", color: "danger" }
+            { min: 65, max: 80, label: "Carences parentales significatives", color: "danger" }
         ]
     },
     COMPENSATION: {
@@ -174,11 +174,11 @@ const SCALES = {
             "Je suis agressif(ve) ou hostile quand je me sens menacé(e)."
         ],
         options: ["Jamais (1)", "Rarement (2)", "Parfois (3)", "Souvent (4)", "Très souvent (5)", "Toujours (6)"],
-        maxScore: 90,
+        maxScore: 75,
         interpretation: [
             { min: 15, max: 35, label: "Stratégies d'adaptation saines", color: "success" },
             { min: 36, max: 60, label: "Styles d'adaptation modérément dysfonctionnels", color: "warning" },
-            { min: 61, max: 90, label: "Styles d'adaptation fortement dysfonctionnels", color: "danger" }
+            { min: 61, max: 75, label: "Styles d'adaptation fortement dysfonctionnels", color: "danger" }
         ]
     },
     BDI: {

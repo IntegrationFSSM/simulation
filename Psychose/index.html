@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ory+ | Simulateur TCC & IPSRT \u2014 Trouble Bipolaire</title>
-    <meta name="description" content="Plateforme clinique de simulation du protocole pour le Trouble Bipolaire \u2014 Oryplus ERP">
+    <title>Ory+ | Simulateur TCC — Psychose & Schizophrénie</title>
+    <meta name="description" content="Plateforme clinique de simulation du protocole pour la Psychose et Schizophrénie (TCCp) — Oryplus ERP">
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="static/styles.css?v=2.0.1">
+    <!-- Shared design system (Unified Styling) -->
+    <link rel="stylesheet" href="../TAG/static/styles.css?v=2.2.0">
+    <!-- Module tweaks and overrides (colors) -->
+    <link rel="stylesheet" href="static/styles.css?v=2.2.0">
 </head>
 <body>
 
@@ -21,10 +22,10 @@
         <div class="sidebar-header">
             <div class="navbar-brand d-flex align-items-center">
                 <a href="../index.html" class="logo-toggle" id="logoToggle" style="padding:0;background:none;border:none;display:flex;align-items:center;cursor:pointer;text-decoration:none;">
-                    <img src="static/img/OryLogofig.png" alt="Logo" class="sidebar-logo" style="height:40px;object-fit:contain;margin-right:-3px;" onerror="this.style.display='none'">
+                    <img src="../TAG/static/img/OryLogofig.png" alt="Logo" class="sidebar-logo" style="height:40px;object-fit:contain;margin-right:-3px;" onerror="this.style.display='none'">
                 </a>
                 <a href="../index.html" class="brand-link" style="text-decoration:none;display:flex;align-items:center;">
-                    <img src="static/img/OryLogoBrand.png" alt="Symbol" class="brand-text-img" style="height:20px;object-fit:contain;" onerror="this.style.display='none'">
+                    <img src="../TAG/static/img/OryLogoBrand.png" alt="Symbol" class="brand-text-img" style="height:20px;object-fit:contain;" onerror="this.style.display='none'">
                 </a>
             </div>
         </div>
@@ -37,7 +38,7 @@
                 <i class="fas fa-brain"></i>
                 <span class="menu-text">TAG</span>
             </a>
-            <a href="index.html" class="menu-item active">
+            <a href="../Bipolaire/index.html" class="menu-item">
                 <i class="fas fa-arrows-alt-v"></i>
                 <span class="menu-text">Trouble Bipolaire</span>
             </a>
@@ -45,7 +46,7 @@
                 <i class="fas fa-user-shield"></i>
                 <span class="menu-text">Personnalité Limite</span>
             </a>
-            <a href="../Psychose/index.html" class="menu-item">
+            <a href="index.html" class="menu-item active">
                 <i class="fas fa-eye"></i>
                 <span class="menu-text">Psychose & Schizophrénie</span>
             </a>
@@ -66,6 +67,8 @@
                 <i class="fas fa-trash-alt"></i>
             </button>
 
+
+
             <div class="user-chip">
                 <div class="avatar">PSY</div>
                 <span class="uname">Clinique Lavale</span>
@@ -73,12 +76,96 @@
         </div>
     </header>
 
-    <div id="app-view"></div>
+       <div id="level-1-view" class="page-content">
+        <div class="section-header text-center" style="margin-bottom: 40px; margin-top: 20px;">
+            <h1 style="font-size:2rem;font-weight:800;color:var(--text);"><i class="fas fa-eye" style="color:var(--primary); margin-right:12px;"></i>Psychose &amp; Schizophrénie</h1>
+            <p style="font-size:1.05rem;color:var(--text-muted);max-width:650px;margin:12px auto 0;">Veuillez sélectionner le parcours clinique approprié pour votre patient.</p>
+        </div>
+
+        <div class="approach-grid">
+            <!-- PARCOURS A — Individuel -->
+            <div class="approach-card" id="card-individuel" style="--card-color:var(--primary); --card-bg:var(--primary-light);" onclick="selectApproach('INDIVIDUEL')">
+                <div class="card-icon"><i class="fas fa-user"></i></div>
+                <h3>TCCp Individuelle (Parcours A)</h3>
+                <p>Protocole central en 16 sessions axé sur le modèle vulnérabilité-stress, la restructuration cognitive des délires et la défusion vis-à-vis des hallucinations.</p>
+                <div class="badge-tag">Protocole Complet</div>
+                <div id="individuel-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
+                    <button class="btn-success-custom w-100 mb-2" onclick="event.stopPropagation(); launchDashboard('PSYCHOSE', 'Individuel')" style="background:var(--primary); padding:10px;"><i class="fas fa-user me-2"></i> Ouvrir le Parcours Individuel</button>
+                </div>
+            </div>
+
+            <!-- PARCOURS B — Groupe -->
+            <div class="approach-card" id="card-groupe" style="--card-color:var(--accent); --card-bg:#ede9fe;" onclick="selectApproach('GROUPE')">
+                <div class="card-icon"><i class="fas fa-users"></i></div>
+                <h3>Modules de Groupe 3ème Vague (Parcours B)</h3>
+                <p>Programme modulaire en 16 séances : Pleine Conscience, Tolérance à la Détresse, Régulation Émotionnelle, Efficacité Interpersonnelle.</p>
+                <div class="badge-tag" style="background:#ede9fe; color:var(--accent);">16 Séances — 4 Modules</div>
+                <div id="groupe-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
+                    <button class="btn-success-custom w-100" onclick="event.stopPropagation(); launchDashboard('PSYCHOSE', 'Groupe')" style="background:var(--accent); padding:10px;"><i class="fas fa-users me-2"></i> Ouvrir le Parcours Groupe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-view" style="display:none;"></div>
 
     <footer class="main-footer">
         &copy; <span id="footerYear"></span> Ory<sup>+</sup> — ERP Médical | CLV Tech &nbsp;
     </footer>
 </div>
+
+<script>
+function selectApproach(approach) {
+    document.getElementById('individuel-modalities').style.display = approach === 'INDIVIDUEL' ? 'block' : 'none';
+    document.getElementById('groupe-modalities').style.display = approach === 'GROUPE' ? 'block' : 'none';
+    
+    const cardIndiv = document.getElementById('card-individuel');
+    const cardGroupe = document.getElementById('card-groupe');
+    
+    if (approach === 'INDIVIDUEL') {
+        cardIndiv.style.borderColor = 'var(--primary)';
+        cardIndiv.style.transform = 'translateY(-4px)';
+        cardIndiv.style.boxShadow = 'var(--shadow-lg)';
+        cardGroupe.style.borderColor = 'var(--border)';
+        cardGroupe.style.transform = 'none';
+        cardGroupe.style.boxShadow = 'var(--shadow-sm)';
+    } else {
+        cardGroupe.style.borderColor = 'var(--accent)';
+        cardGroupe.style.transform = 'translateY(-4px)';
+        cardGroupe.style.boxShadow = 'var(--shadow-lg)';
+        cardIndiv.style.borderColor = 'var(--border)';
+        cardIndiv.style.transform = 'none';
+        cardIndiv.style.boxShadow = 'var(--shadow-sm)';
+    }
+}
+
+function launchDashboard(approach, modality) {
+    // Switch dynamic protocol based on modality
+    if (modality === 'Groupe') {
+        window.currentTroubleId = 'PSYCHOSE_GROUP';
+        app.showToast("Ouverture du Parcours Groupe (3ème Vague)", "success");
+    } else {
+        window.currentTroubleId = 'DSM5_SCHIZO';
+        app.showToast("Ouverture de l'environnement TCCp", "success");
+    }
+    
+    // Update the master PROTOCOL pointer so app.js uses the right schema
+    if (window.PROTOCOLS_DB && window.PROTOCOLS_DB[window.currentTroubleId]) {
+        window.PROTOCOL = window.PROTOCOLS_DB[window.currentTroubleId];
+    }
+    
+    // Transition
+    document.getElementById('level-1-view').style.display = 'none';
+    const appView = document.getElementById('app-view');
+    appView.style.display = 'block';
+    appView.style.animation = 'fadeIn 0.3s ease';
+
+    // Reload patient fully if present
+    if (window.app && app.state && app.state.selectedPatient) {
+        app.selectPatient(app.state.selectedPatient.id);
+    }
+}
+</script>
 
 <!-- ========================== MODAL CONTAINER ========================== -->
 <div id="modal-root"></div>
@@ -88,33 +175,28 @@
 
 <!-- ========================== TEMPLATES ========================== -->
 
-
-
 <!-- DOSSIER PATIENT -->
 <template id="tpl-dossier">
 <div>
 
 
-    <div class="row g-3">
-        <div class="col-md-12">
-            <div class="panel-card mb-3">
-                <div class="panel-card-header">
-                    <h6><i class="fas fa-list-check me-2 text-primary-c"></i>Progression des séances</h6>
-                    <span id="dossier-progress-badge" class="badge" style="background:var(--primary);color:white;font-size:0.7rem;padding:4px 10px;border-radius:20px;"></span>
-                </div>
-                <div class="panel-card-body" style="max-height:500px;overflow-y:auto;">
-                    <div class="session-timeline" id="dossier-session-timeline"></div>
-                </div>
-            </div>
+    <!-- Progression des séances -->
+    <div class="panel-card mb-3">
+        <div class="panel-card-header">
+            <h6><i class="fas fa-list-check me-2 text-primary-c"></i>Progression des séances</h6>
+            <span id="dossier-progress-badge" class="badge" style="background:var(--primary);color:white;font-size:0.7rem;padding:4px 10px;border-radius:20px;"></span>
+        </div>
+        <div class="panel-card-body" style="max-height:600px;overflow-y:auto;">
+            <div class="session-timeline" id="dossier-session-timeline"></div>
         </div>
     </div>
 </div>
 </template>
 
-<!-- EXERCICES TAG -->
+<!-- EXERCICES -->
 <template id="tpl-exercises">
 <div>
-    <div class="section-title"><i class="fas fa-clipboard-list text-primary-c"></i> Exercices \u2014 Protocoles TCC & IPSRT (Bipolarit\u00e9)</div>
+    <div class="section-title"><i class="fas fa-clipboard-list text-primary-c"></i> <span id="exercises-title-text">Outils Cliniques</span></div>
     <div class="row g-3">
         <div class="col-md-4">
             <div class="panel-card" style="position:sticky;top:80px;">
@@ -187,33 +269,15 @@
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="static/data.js?v=2.0.1"></script>
-<script src="static/protocols.js?v=2.0.1"></script>
-<!-- Use shared TAG storage (LocalAPI + ExerciseStorage/renderer) -->
-<script src="../TAG/static/storage.js?v=2.0.1"></script>
-<script src="static/exercises_config.js?v=2.0.1"></script>
-<script src="static/exercises.js?v=2.0.1"></script>
+<script src="static/data.js?v=PSY.1.0"></script>
+<script src="static/protocols.js?v=PSY.1.0"></script>
+<script src="../TAG/static/storage.js?v=2.0.6-tpl"></script>
+<script src="static/exercises_config.js?v=PSY.1.0"></script>
+<script src="../TAG/static/exercises.js?v=2.0.5-tpl"></script>
 <script>
-    // Hardcoded for static version
-    window.currentTroubleId = "BIPOLAR";
+  window.currentTroubleId = "DSM5_SCHIZO";
+  document.getElementById("footerYear").textContent = new Date().getFullYear();
 </script>
-<!-- Reuse TAG app logic for both troubles -->
-<script src="../TAG/static/app.js?v=2.0.2"></script>
-<script>
-    document.getElementById('footerYear').textContent = new Date().getFullYear();
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.sub-menu > a.menu-item').forEach(function (trigger) {
-            trigger.addEventListener('click', function (e) {
-                e.preventDefault();
-                const parent = this.parentElement;
-                const isOpen = parent.classList.contains('open');
-                document.querySelectorAll('.sub-menu').forEach(function (sm) {
-                    if (sm !== parent) sm.classList.remove('open');
-                });
-                parent.classList.toggle('open', !isOpen);
-            });
-        });
-    });
-</script>
+<script src="../TAG/static/app.js?v=2.3.0"></script>
 </body>
 </html>

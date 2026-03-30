@@ -20,10 +20,10 @@
     <nav class="sidebar">
         <div class="sidebar-header">
             <div class="navbar-brand d-flex align-items-center">
-                <button class="logo-toggle" id="logoToggle" type="button" style="padding:0;background:none;border:none;display:flex;align-items:center;cursor:pointer;">
+                <a href="../index.html" class="logo-toggle" id="logoToggle" style="padding:0;background:none;border:none;display:flex;align-items:center;cursor:pointer;text-decoration:none;">
                     <img src="static/img/OryLogofig.png" alt="Logo" class="sidebar-logo" style="height:40px;object-fit:contain;margin-right:-3px;" onerror="this.style.display='none'">
-                </button>
-                <a href="#" class="brand-link" style="text-decoration:none;display:flex;align-items:center;">
+                </a>
+                <a href="../index.html" class="brand-link" style="text-decoration:none;display:flex;align-items:center;">
                     <img src="static/img/OryLogoBrand.png" alt="Symbol" class="brand-text-img" style="height:20px;object-fit:contain;" onerror="this.style.display='none'">
                 </a>
             </div>
@@ -45,6 +45,10 @@
                 <i class="fas fa-user-shield"></i>
                 <span class="menu-text">Personnalité Limite</span>
             </a>
+            <a href="../Psychose/index.html" class="menu-item">
+                <i class="fas fa-eye"></i>
+                <span class="menu-text">Psychose & Schizophrénie</span>
+            </a>
         </div>
     </nav>
 </div>
@@ -61,12 +65,10 @@
             <button class="btn-sm-icon" style="color: var(--danger); margin-right: 8px;" onclick="if(confirm('Êtes-vous sûr de vouloir tout effacer et recommencer à zéro ?')) { localStorage.clear(); window.location.reload(); }" title="Réinitialiser toutes les données (Vider le cache)">
                 <i class="fas fa-trash-alt"></i>
             </button>
-            <button class="btn-sm-icon" onclick="window.print()" title="Imprimer / Exporter PDF">
-                <i class="fas fa-print"></i>
-            </button>
+
             <div class="user-chip">
                 <div class="avatar">PSY</div>
-                <span class="uname">Clinique Ory+</span>
+                <span class="uname">Clinique Lavale</span>
             </div>
         </div>
     </header>
@@ -91,16 +93,7 @@
 <!-- DOSSIER PATIENT -->
 <template id="tpl-dossier">
 <div>
-    <!-- Consultation médicale -->
-    <div class="panel-card mb-3" id="dossier-consultation-card" style="display:none;">
-        <div class="panel-card-header d-flex justify-content-between align-items-center"
-             style="cursor:pointer;"
-             onclick="const b = document.getElementById('dossier-consultation-area'); const i = this.querySelector('.fa-chevron-down'); if(b.style.display==='none'){b.style.display='block';i.style.transform='rotate(0deg)';app.state.consultationOpen=true;}else{b.style.display='none';i.style.transform='rotate(-90deg)';app.state.consultationOpen=false;}">
-            <h6 class="m-0"><i class="fas fa-user-doctor me-2" style="color:#10b981;"></i>Consultation médicale d'orientation</h6>
-            <i class="fas fa-chevron-down" style="transition:transform 0.2s; color:var(--text-muted);"></i>
-        </div>
-        <div class="panel-card-body" id="dossier-consultation-area"></div>
-    </div>
+
 
     <!-- Progression des séances (full width) -->
     <div class="panel-card mb-3">

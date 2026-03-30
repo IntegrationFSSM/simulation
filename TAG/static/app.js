@@ -138,12 +138,17 @@ const app = {
         if (sessionNo) {
             const p = this.state.selectedPatient;
             if (p) {
+                // Clear selected exercise when switching to a different session
+                if (this.state.activeSession && this.state.activeSession.no !== sessionNo) {
+                    this.state.sessionExerciseId = null;
+                }
                 this.state.activeSession = { no: sessionNo };
             }
             // Set session context for ExerciseStorage scoping
             window.activeSessionNo = sessionNo;
         } else if (panelId !== 'session') {
-            // Clear session context when not in a session
+            // Clear session context and selected exercise when not in a session
+            this.state.sessionExerciseId = null;
             window.activeSessionNo = undefined;
         }
         this.render();
@@ -312,23 +317,28 @@ const app = {
                             ${label}
                         </div>
                         <div style="font-size:0.72rem;color:var(--text-muted);">
-                            ${exerciseCount} exercice${exerciseCount > 1 ? 's' : ''} associ\u00e9${exerciseCount > 1 ? 's' : ''}
+                            ${exerciseCount} ${isGuide ? ('guide' + (exerciseCount > 1 ? 's' : '')) : ('exercice' + (exerciseCount > 1 ? 's' : ''))} associ\u00e9${exerciseCount > 1 ? 's' : ''}
                         </div>
                     </div>
                     ${badgeHtml}
                 </div>
             `;
 
-            // Add "+ Intermédiaire" button after any regular session (completed or not)
-            if (!s.isIntermediate && !isGuide) {
-                row += `
-                    <div style="margin-left:28px;margin-bottom:4px;">
-                        <button class="btn-ghost" style="font-size:0.68rem;padding:2px 10px;color:#8b5cf6;border:1px dashed #c4b5fd;border-radius:8px;"
-                                onclick="event.stopPropagation(); app.addIntermediateSession(${s.no})">
-                            <i class="fas fa-plus me-1"></i>Ajouter s\u00e9ance interm\u00e9diaire
-                        </button>
-                    </div>
-                `;
+            // Add "+ Intermédiaire" button only on the last completed session
+            if (!s.isIntermediate && !isGuide && isDone) {
+                // Find the highest completed regular session number
+                const completedRegulars = (Array.isArray(p.completedSessions) ? p.completedSessions : []).filter(n => n === Math.floor(n) && !app._isGuideSessionNo(n));
+                const lastDoneNo = completedRegulars.length > 0 ? Math.max(...completedRegulars) : -1;
+                if (s.no === lastDoneNo) {
+                    row += `
+                        <div style="margin-left:28px;margin-bottom:4px;">
+                            <button class="btn-ghost" style="font-size:0.68rem;padding:2px 10px;color:#8b5cf6;border:1px dashed #c4b5fd;border-radius:8px;"
+                                    onclick="event.stopPropagation(); app.addIntermediateSession(${s.no})">
+                                <i class="fas fa-plus me-1"></i>Ajouter s\u00e9ance interm\u00e9diaire
+                            </button>
+                        </div>
+                    `;
+                }
             }
 
             return row;
@@ -391,9 +401,7 @@ const app = {
 
         timeline.innerHTML = timelineHtml;
 
-        // Only render consultation (the only extra section kept)
-        this.renderConsultation(p, 'dossier-consultation-card', 'dossier-consultation-area');
-        this.renderConsultation(p, 'dossier-consultation-card', 'dossier-consultation-area');
+
     },
 
     async addIntermediateSession(afterSessionNo) {
