@@ -597,9 +597,10 @@ const app = {
             return `<option value="${ex.id}" ${this.state.sessionExerciseId === ex.id ? 'selected' : ''}>${ex.ref} ${ex.title}${mark}</option>`;
         };
 
-        // Separate always-available exercises (psychologue library) for clarity
-        const alwaysExercises = sessionExercises.filter(ex => ex && ex.alwaysAvailable === true);
-        const regularExercises = sessionExercises.filter(ex => ex && ex.alwaysAvailable !== true);
+        // Separate guides from interactive exercises
+        const guideExercises = sessionExercises.filter(ex => ex && ex.type === 'info');
+        const alwaysExercises = sessionExercises.filter(ex => ex && ex.alwaysAvailable === true && ex.type !== 'info');
+        const regularExercises = sessionExercises.filter(ex => ex && ex.alwaysAvailable !== true && ex.type !== 'info');
 
         const sessionLabel = isGuide
             ? `Guide \u2014 Avant s\u00e9ance ${Math.ceil(s.no)}`
@@ -1681,6 +1682,169 @@ const app = {
         document.getElementById('modal-root').innerHTML = '';
         this.showToast(`Exercice "${title}" créé et ajouté à l'agenda.`, 'success');
         this.render();
+    },
+
+    /* =================== PANIQUE ET AGORAPHOBIE LOGIC =================== */
+    _calcBurnsScore(container) {
+        if(!container) return;
+        let c1=0, c2=0, c3=0;
+        let answered = 0;
+        container.querySelectorAll('.ex-check:checked').forEach(el => {
+            const v = parseInt(el.dataset.val);
+            const key = el.dataset.key; // item_1 to item_33
+            const num = parseInt(key.split('_')[1]);
+            answered++;
+            if(num >= 1 && num <= 6) c1 += v;
+            else if(num >= 7 && num <= 17) c2 += v;
+            else if(num >= 18 && num <= 33) c3 += v;
+        });
+        
+        const area = container.querySelector('.burns-score-area');
+        if(!area) return;
+        if(answered === 0) { area.style.display = 'none'; return; }
+        
+        const total = c1 + c2 + c3;
+        let html = `<strong>Score Total : ${total}/99</strong><br>
+        <span style="font-size:0.85rem;color:var(--text-muted);">Cat 1 (Sentiments) : ${c1}/18 | Cat 2 (Pensées) : ${c2}/33 | Cat 3 (Physiques) : ${c3}/48</span>`;
+        
+        if (c3 > 15) {
+            html += `<div class="alert alert-danger mt-2 mb-0" style="font-size:0.85rem;"><i class="fas fa-exclamation-circle"></i> <strong>Alerte Psychologue :</strong> Symptômes physiologiques disproportionnés ! Prévoyez un exercice de rééducation respiratoire d'urgence.</div>`;
+        }
+        area.innerHTML = html;
+        area.style.display = 'block';
+    },
+
+    _checkPanicAlert(container) {
+        if(!container) return;
+        const area = container.querySelector('.panic-alert-container');
+        if(!area) return;
+        
+        let hasDeathFear = false;
+        container.querySelectorAll('.symp-check:checked').forEach(e => {
+            const lbl = e.dataset.label || '';
+            if (lbl.includes("Peur de mourir") || lbl.includes("Douleur thoracique")) hasDeathFear = true;
+        });
+        
+        if (hasDeathFear) {
+            area.innerHTML = `<div class="alert alert-warning mt-2 mb-0" style="font-size:0.85rem;"><i class="fas fa-lightbulb"></i> <strong>Modèle Fausse Alarme :</strong> Il est recommandé d'expliquer au patient que la douleur thoracique et la peur de mourir sont des conséquences normales de de l'hyperventilation.</div>`;
+        } else {
+            area.innerHTML = '';
+        }
+    },
+
+    _updateDelta(input) {
+        const tr = input.closest('tr');
+        const av = parseInt(tr.querySelector('[data-arr="avant"]').value);
+        const ap = parseInt(tr.querySelector('[data-arr="apres"]').value);
+        const dt = tr.querySelector('.delta-val');
+        if(!isNaN(av) && !isNaN(ap)) {
+            const delta = av - ap;
+            dt.dataset.delta = delta;
+            dt.textContent = delta > 0 ? '-'+delta : (delta == 0 ? '0' : '+'+Math.abs(delta));
+            dt.className = 'align-middle fw-bold delta-disp delta-val ' + (delta > 0 ? 'text-success' : 'text-danger');
+        } else {
+            dt.textContent = "—";
+            dt.dataset.delta = 0;
+            dt.className = 'align-middle fw-bold delta-disp delta-val';
+        }
+    },
+    
+    _drawRespChart(exId) {
+        const area = document.getElementById('resp-chart-' + exId);
+        if(!area) return;
+        const pts = [];
+        document.querySelectorAll(`#resp-table-${exId} tbody tr:not(:last-child)`).forEach(tr => {
+            const dt = tr.querySelector('.delta-val');
+            if(dt && dt.textContent.trim() !== '—') {
+                const d = parseFloat(dt.dataset.delta || 0);
+                pts.push(d);
+            }
+        });
+        if(pts.length === 0) { area.innerHTML = "[Le graphique Taux de Succès s'affichera après ajout de données]"; return; }
+        
+        area.innerHTML = `<strong>Tendance des succès respiratoires :</strong><br><div style="display:flex;gap:5px;align-items:flex-end;height:120px;margin-top:10px;">
+           ${pts.map(p => {
+               const h = Math.abs(p) * 10;
+               const c = p > 0 ? 'var(--success)' : (p < 0 ? 'var(--danger)' : '#ccc');
+               return `<div style="width:20px;height:${h}px;background:${c};" title="${p}"></div>`;
+           }).join('')}
+        </div><br><span style="font-size:0.8rem;">(Vert = Réduction d'anxiété)</span>`;
+    },
+
+    _updateInteroceptiveRow(input) {
+        const val = parseInt(input.value);
+        const d = input.closest('tr').querySelector('.target-col');
+        if(val > 7) {
+            d.innerHTML = '<span class="badge bg-danger">Mission requise</span>';
+            input.closest('tr').style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+        } else {
+            d.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">—</span>';
+            input.closest('tr').style.backgroundColor = 'transparent';
+        }
+    },
+
+    _updateIMA(container) {
+        if(!container) return;
+        if(container instanceof HTMLElement === false) {
+            // Might be a direct call with exId or so, wrap logic safely
+        }
+        const selects = container.querySelectorAll('.avoid-select');
+        let selectedPlaces = [];
+        selects.forEach(sel => {
+            const val = parseInt(sel.value);
+            if(val >= 3) {
+                const pname = sel.closest('div').querySelector('.place-name').textContent;
+                selectedPlaces.push({name: pname, avoid: val, key: sel.dataset.key});
+            }
+        });
+        
+        const area = container.querySelector('.ima-hierarchy-container');
+        if(!area) return;
+        
+        if(selectedPlaces.length === 0) {
+            area.innerHTML = `<div class="alert alert-secondary mt-3" style="font-size:0.85rem;">Aucun lieu évité significativement (3+) n'a été sélectionné.</div>`;
+            return;
+        }
+        
+        let html = `<h6 class="mt-4">Étape 2 & 3 : Hiérarchie (Ordonner les missions)</h6><div class="alert alert-info" style="font-size:0.85rem;"><i class="fas fa-info-circle"></i> Le patient doit évaluer sa Peur (0-100) pour chaque lieu évité. Indiquez la peur ci-dessous :</div><div class="row g-2 mb-3">`;
+        
+        selectedPlaces.forEach(p => {
+            html += `<div class="col-md-6 d-flex align-items-center justify-content-between" style="font-size:0.85rem;padding:6px;border-bottom:1px solid var(--border);">
+                <span>${p.name} (Évt: ${p.avoid})</span>
+                <div class="d-flex align-items-center">
+                    <span class="me-2 text-muted">Peur:</span>
+                    <input type="number" class="form-control form-control-sm ex-input ima-peur-input" style="width:70px;" data-key="peur_${p.key.split('_')[1]}" placeholder="0-100">
+                </div>
+            </div>`;
+        });
+        html += `</div>`;
+        area.innerHTML = html;
+        
+        // Let user fill peur inputs. 
+        // In reality we should fetch saved ones if we just re-rendered.
+    },
+
+    _checkNeutralization(container) {
+        if(!container) return;
+        const strat = container.querySelector('input[type="radio"]:checked')?.dataset.val;
+        const alertArea = container.querySelector('.habituation-alert-container');
+        if(!alertArea) return;
+        
+        if (strat === '2') {
+            alertArea.style.display = 'block';
+            alertArea.className = 'alert alert-danger mt-2 mb-0 habituation-alert-container';
+            alertArea.innerHTML = `<i class="fas fa-running"></i> <strong>Évitement (Fuite)</strong> : L'exposition a échoué. Discutez des déclencheurs et recommanez à un niveau IMA inférieur.`;
+        } else if (strat === '3') {
+            alertArea.style.display = 'block';
+            alertArea.className = 'alert alert-warning mt-2 mb-0 habituation-alert-container';
+            alertArea.innerHTML = `<i class="fas fa-shield-alt"></i> <strong>Surutilisation d'une béquille</strong> : L'anxiété baissera superficiellement, mais le cerveau ne fera pas l'habituation. Il faut refaire l'exercice SANS cet objet de sécurité.`;
+        } else if (strat === '1') {
+            alertArea.style.display = 'block';
+            alertArea.className = 'alert alert-success mt-2 mb-0 habituation-alert-container';
+            alertArea.innerHTML = `<i class="fas fa-check-circle"></i> <strong>Succès pur</strong> : Habituation neurologique enclenchée.`;
+        } else {
+            alertArea.style.display = 'none';
+        }
     },
 
     /* =================== TOAST =================== */

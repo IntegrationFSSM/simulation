@@ -127,6 +127,13 @@ const ExerciseRenderer = {
             case 'custom': html = this.renderCustom(exercise, patientId); break;
             case 'diary_card_dbt': html = this.renderDiaryCardDBT(exercise, patientId); break;
             case 'chain_analysis': html = this.renderChainAnalysis(exercise, patientId); break;
+            case 'burns_inventory': html = this.renderBurnsInventory(exercise, patientId); break;
+            case 'panic_observation': html = this.renderPanicObservation(exercise, patientId); break;
+            case 'respiration_tracker': html = this.renderRespirationTracker(exercise, patientId); break;
+            case 'interoceptive_grid': html = this.renderInteroceptiveGrid(exercise, patientId); break;
+            case 'ima_hierarchy': html = this.renderIMA(exercise, patientId); break;
+            case 'habituation_tracker': html = this.renderHabituationTracker(exercise, patientId); break;
+            case 'relapse_plan': html = this.renderRelapsePlan(exercise, patientId); break;
             default: html = `<p>Type d'exercice inconnu : ${type}</p>`;
         }
         container.innerHTML = this._wrapExercise(exercise, html);
@@ -583,6 +590,254 @@ const ExerciseRenderer = {
     },
 
     // =====================================================
+    // PANIQUE ET AGORAPHOBIE RENDERERS
+    // =====================================================
+    renderBurnsInventory(ex, patientId) {
+        const data = ExerciseStorage.get(patientId, ex.id) || {};
+        const items = [
+            // Cat 1: Sentiments (1-6)
+            "1. Anxiété, nervosité, inquiétude ou peur", "2. Sentiment que les choses échappent à votre contrôle", 
+            "3. Sentiments de panique", "4. Sentiment qu'une catastrophe va se produire", 
+            "5. Sentiment d'être très bousculé(e) ou sur le point d'exploser", "6. Sentiment de désarroi ou de confusion",
+            // Cat 2: Pensées (7-17)
+            "7. Impossibilité de se concentrer", "8. Difficulté à prendre des décisions",
+            "9. Peur de perdre le contrôle de soi", "10. Peur d'être l'objet d'un examen minutieux",
+            "11. Impressions d'étrangeté concernant les gens ou les choses", "12. Sentiment de devenir fou / folle",
+            "13. Peur d'être rejeté(e) ou critiqué(e)", "14. Peur d'être ridicule",
+            "15. Peur d'attraper une maladie grave", "16. Peur de faire quelque chose de honteux",
+            "17. Peur de la mort",
+            // Cat 3: Physiques (18-33)
+            "18. Impression que le cœur s'arrête ou s'emballe", "19. Sentiment d'étouffement", "20. Sensations d'étourdissement",
+            "21. Transpiration intense", "22. Jambes molles", "23. Tendance à trembler", "24. Sentiment de suffocation",
+            "25. Serrements dans le ventre", "26. Serrements dans la poitrine", "27. Étourdissement",
+            "28. Picotements", "29. Fourmillements", "30. Impression d'estomac serré", "31. Mains froides",
+            "32. Bouffées de chaleur ou frissons", "33. Impression de perte de connaissance"
+        ];
+        
+        let html = '<div class="burns-grid mb-3"><div class="table-responsive"><table class="table table-bordered table-sm" style="font-size:0.85rem;">';
+        html += '<thead class="table-light"><tr><th style="width:55%">Symptôme</th><th class="text-center">Pas du tout (0)</th><th class="text-center">Un peu (1)</th><th class="text-center">Modérément (2)</th><th class="text-center">Beaucoup (3)</th></tr></thead><tbody>';
+        
+        items.forEach((item, idx) => {
+            const key = 'item_' + (idx + 1);
+            const val = data[key];
+            if(idx === 0) html += '<tr><td colspan="5" style="background:#f3f4f6;font-weight:700;">Catégorie 1 : Sentiments</td></tr>';
+            if(idx === 6) html += '<tr><td colspan="5" style="background:#f3f4f6;font-weight:700;">Catégorie 2 : Pensées</td></tr>';
+            if(idx === 17) html += '<tr><td colspan="5" style="background:#f3f4f6;font-weight:700;">Catégorie 3 : Symptômes Physiques</td></tr>';
+            
+            html += `<tr><td>${item}</td>`;
+            for (let v = 0; v <= 3; v++) {
+                const isSelected = val == v ? 'checked' : '';
+                html += `<td class="text-center"><input type="radio" class="ex-check" name="burns_${ex.id}_${idx}" data-key="${key}" data-val="${v}" ${isSelected} onclick="if(window.app) window.app._calcBurnsScore(this.closest('.exercise-detail'))"></td>`;
+            }
+            html += `</tr>`;
+        });
+        html += '</tbody></table></div></div>';
+        
+        // Score display and Alert area
+        html += `<div class="burns-score-area" style="padding:15px;background:var(--surface-2);border-radius:var(--r-md);margin-top:15px;display:none;"></div>`;
+        return html;
+    },
+
+    renderPanicObservation(ex, patientId) {
+        const data = ExerciseStorage.get(patientId, ex.id) || {};
+        const symptoms = [
+            "Étouffement", "Étourdissements", "Palpitations", "Tremblements", 
+            "Transpiration", "Étranglement", "Nausée", "Irréalité", 
+            "Engourdissements", "Chaleurs / frissons", "Douleur thoracique", 
+            "Peur de mourir", "Peur de devenir fou / perdre le contrôle"
+        ];
+        
+        let html = `
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="exercise-field-label">Date et Heure</label>
+                    <div class="d-flex gap-2">
+                        <input type="date" class="form-control form-control-sm ex-input" data-key="date" value="${data.date||''}">
+                        <input type="time" class="form-control form-control-sm ex-input" data-key="time" value="${data.time||''}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="exercise-field-label">Anxiété maximale (0-10)</label>
+                    <input type="number" class="form-control form-control-sm ex-input" data-key="anx_max" min="0" max="10" value="${data.anx_max||''}">
+                </div>
+                <div class="col-12 mt-3">
+                    <label class="exercise-field-label">Type de déclencheur</label>
+                    <select class="form-select form-select-sm ex-input" data-key="trigger_type">
+                        <option value="">Sélectionnez un déclencheur...</option>
+                        <option ${data.trigger_type==="Situation"?"selected":""}>1. Situation spécifique</option>
+                        <option ${data.trigger_type==="Pensée"?"selected":""}>2. Pensée intrusive</option>
+                        <option ${data.trigger_type==="Sensation"?"selected":""}>3. Sensation physique isolée</option>
+                        <option ${data.trigger_type==="Spontanée"?"selected":""}>4. Spontanée / Inattendue</option>
+                    </select>
+                </div>
+                <div class="col-12 mt-3">
+                    <label class="exercise-field-label">Symptômes ressentis</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        ${symptoms.map((symp, i) => {
+                            const isChecked = data['symp_'+i] ? 'checked' : '';
+                            return `<div class="form-check" style="width:calc(50% - 1rem);"><input type="checkbox" class="form-check-input ex-check symp-check" data-key="symp_${i}" id="chk_${ex.id}_${i}" ${isChecked} data-label="${symp}" onclick="if(window.app) window.app._checkPanicAlert(this.closest('.exercise-detail'))"><label class="form-check-label" style="font-size:0.85rem;" for="chk_${ex.id}_${i}">${symp}</label></div>`;
+                        }).join('')}
+                    </div>
+                </div>
+                <!-- Alert container injected here dynamically via JS during save/change -->
+                <div class="col-12 panic-alert-container"></div>
+            </div>
+        `;
+        return html;
+    },
+
+    renderRespirationTracker(ex, patientId) {
+        const data = ExerciseStorage.get(patientId, ex.id) || {};
+        let savedLogs = data.logs || [];
+        
+        let html = `
+            <div class="alert alert-info mb-3" style="font-size:0.85rem;"><i class="fas fa-info-circle"></i> Le patient doit appliquer la respiration diaphragmatique pendant la crise ou en exercice régulier de 5 mins.</div>
+            <div class="table-responsive mb-3">
+                <table class="table table-bordered table-sm text-center" style="font-size:0.85rem;" id="resp-table-${ex.id}">
+                    <thead><tr><th>Date</th><th>Durée (min)</th><th>Anxiété AVANT (0-10)</th><th>Anxiété APRÈS (0-10)</th><th>Delta (Succès)</th><th class="no-print"></th></tr></thead>
+                    <tbody>
+                        ${savedLogs.map((log, i) => {
+                            const delta = (log.avant || 0) - (log.apres || 0);
+                            const tClass = delta > 0 ? 'text-success' : (delta < 0 ? 'text-danger' : '');
+                            return `<tr>
+                                <td><input type="date" class="form-control form-control-sm ex-input-arr" data-arr="date" value="${log.date||''}"></td>
+                                <td><input type="number" class="form-control form-control-sm ex-input-arr" data-arr="duree" value="${log.duree||''}"></td>
+                                <td><input type="number" min="0" max="10" class="form-control form-control-sm ex-input-arr" data-arr="avant" value="${log.avant||''}" oninput="if(window.app) window.app._updateDelta(this)"></td>
+                                <td><input type="number" min="0" max="10" class="form-control form-control-sm ex-input-arr" data-arr="apres" value="${log.apres||''}" oninput="if(window.app) window.app._updateDelta(this)"></td>
+                                <td class="align-middle fw-bold ${tClass} delta-val" data-delta="${delta}"> ${delta > 0 ? '-'+delta : (delta == 0 ? '0' : '+'+Math.abs(delta))}</td>
+                                <td class="no-print"><button class="btn-sm-icon text-danger" onclick="this.closest('tr').remove(); if(window.app) window.app._drawRespChart('${ex.id}');"><i class="fas fa-trash"></i></button></td>
+                            </tr>`;
+                        }).join('')}
+                        <tr>
+                            <td><input type="date" class="form-control form-control-sm ex-input-arr dummy-row" data-arr="date"></td>
+                            <td><input type="number" class="form-control form-control-sm ex-input-arr dummy-row" data-arr="duree"></td>
+                            <td><input type="number" min="0" max="10" class="form-control form-control-sm ex-input-arr dummy-row" data-arr="avant" oninput="if(window.app) window.app._updateDelta(this)"></td>
+                            <td><input type="number" min="0" max="10" class="form-control form-control-sm ex-input-arr dummy-row" data-arr="apres" oninput="if(window.app) window.app._updateDelta(this)"></td>
+                            <td class="align-middle fw-bold delta-disp delta-val" data-delta="0">—</td>
+                            <td class="no-print"><button class="btn-sm-icon text-danger" onclick="this.closest('tr').remove(); if(window.app) window.app._drawRespChart('${ex.id}');"><i class="fas fa-trash"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn-ghost btn-sm no-print mb-4" onclick="document.querySelector('#resp-table-${ex.id} tbody').insertAdjacentHTML('beforeend', '<tr><td><input type=\"date\" class=\"form-control form-control-sm ex-input-arr\" data-arr=\"date\"></td><td><input type=\"number\" class=\"form-control form-control-sm ex-input-arr\" data-arr=\"duree\"></td><td><input type=\"number\" min=\"0\" max=\"10\" class=\"form-control form-control-sm ex-input-arr\" data-arr=\"avant\" onchange=\"window.app._updateDelta(this)\"></td><td><input type=\"number\" min=\"0\" max=\"10\" class=\"form-control form-control-sm ex-input-arr\" data-arr=\"apres\" onchange=\"window.app._updateDelta(this)\"></td><td class=\"align-middle fw-bold delta-disp delta-val\" data-delta=\"0\">—</td><td class=\"no-print\"><button class=\"btn-sm-icon text-danger\" onclick=\"this.closest(\\'tr\\').remove(); window.app._drawRespChart(\\'${ex.id}\\');\"><i class=\"fas fa-trash\"></i></button></td></tr>')"><i class="fas fa-plus"></i> Ajouter une ligne</button>
+            <div id="resp-chart-${ex.id}" style="height:250px;background:#f8f9fa;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.8rem;">
+                [Le graphique Taux de Succès s'affichera après ajout de données]
+            </div>
+        `;
+        return html;
+    },
+
+    renderInteroceptiveGrid(ex, patientId) {
+        const data = ExerciseStorage.get(patientId, ex.id) || {};
+        const exercises = [
+            "Secouer la tête gauche/droite", "Redressement rapide de la tête", 
+            "Monter/descendre une marche", "Retenir sa respiration", 
+            "Tension corporelle extrême (crisper tout)", "Tournoiement (sur une chaise)", 
+            "Hyperventilation (respiration rapide)", "Respiration restreinte (paille)"
+        ];
+        
+        let html = `
+            <div class="table-responsive"><table class="table table-bordered table-sm text-center" style="font-size:0.85rem;">
+                <thead class="table-light"><tr><th style="text-align:left;">Exercice</th><th>Anxiété ressentie (0-10)</th><th>Similitude avec crises (0-10)</th><th class="text-center" style="width:100px;">Statut</th></tr></thead>
+                <tbody>
+        `;
+        exercises.forEach((item, i) => {
+            const anx = data['anx_'+i] || '';
+            const sim = data['sim_'+i] || '';
+            const isTarget = parseInt(sim) > 7;
+            const targetHtml = isTarget ? '<span class="badge bg-danger">Mission requise</span>' : '<span style="color:var(--text-muted);font-size:0.75rem;">—</span>';
+            const rowStyle = isTarget ? 'background:rgba(239, 68, 68, 0.05);' : '';
+            html += `<tr style="${rowStyle}">
+                <td style="text-align:left;vertical-align:middle;">${i+1}. ${item}</td>
+                <td><input type="number" class="form-control form-control-sm ex-input mx-auto" style="width:60px;" data-key="anx_${i}" value="${anx}" min="0" max="10"></td>
+                <td><input type="number" class="form-control form-control-sm ex-input mx-auto" style="width:60px;" data-key="sim_${i}" value="${sim}" min="0" max="10" oninput="if(window.app) window.app._updateInteroceptiveRow(this)"></td>
+                <td class="align-middle target-col">${targetHtml}</td>
+            </tr>`;
+        });
+        html += '</tbody></table></div>';
+        return html;
+    },
+
+    renderIMA(ex, patientId) {
+        const data = ExerciseStorage.get(patientId, ex.id) || {};
+        const places = [
+            "Ascenseurs", "Supermarchés fermés", "Supermarchés (grandes surfaces)", 
+            "Ponts", "Autoroutes", "Foules / Rassemblements", "Transports en commun (Bus)", 
+            "Transports en commun (Métro/Train)", "Être seul à la maison", "S'éloigner seul de la maison"
+        ];
+        
+        let html = `<h6>Étape 1 : Évaluation de l'évitement (1-5)</h6><div class="row g-2 mb-4 ima-step1-container">`;
+        places.forEach((place, i) => {
+            const avoid = data['avoid_'+i] || '';
+            html += `<div class="col-md-6 d-flex align-items-center justify-content-between" style="font-size:0.85rem;padding:6px;border-bottom:1px solid var(--border);">
+                <span class="place-name">${place}</span>
+                <select class="form-select form-select-sm ex-input avoid-select" style="width:140px;" data-key="avoid_${i}" data-index="${i}" onchange="if(window.app) window.app._updateIMA(this.closest('.exercise-detail'))">
+                    <option value="">Sélectionnez...</option>
+                    <option value="1" ${avoid=='1'?'selected':''}>1 (Jamais)</option>
+                    <option value="2" ${avoid=='2'?'selected':''}>2 (Rarement)</option>
+                    <option value="3" ${avoid=='3'?'selected':''}>3 (Parfois)</option>
+                    <option value="4" ${avoid=='4'?'selected':''}>4 (Souvent)</option>
+                    <option value="5" ${avoid=='5'?'selected':''}>5 (Toujours)</option>
+                </select>
+            </div>`;
+        });
+        html += `</div>`;
+        
+        html += `<div class="ima-hierarchy-container"></div>`;
+        
+        return html;
+    },
+
+    renderHabituationTracker(ex, patientId) {
+        const data = ExerciseStorage.get(patientId, ex.id) || {};
+        let html = `
+            <div class="mb-3">
+                <label class="exercise-field-label">Situation affrontée (Mission in-vivo)</label>
+                <input type="text" class="form-control form-control-sm ex-input" data-key="situation" value="${data.situation||''}" placeholder="Ex: Aller au supermarché seul pendant 20 minutes">
+            </div>
+            <div class="row mb-3 g-2">
+                <div class="col-md-3"><label class="exercise-field-label">Durée (min)</label><input type="number" class="form-control form-control-sm ex-input" data-key="duree" value="${data.duree||''}"></div>
+                <div class="col-md-3"><label class="exercise-field-label">Anxiété AVANT</label><input type="number" class="form-control form-control-sm ex-input" data-key="anx_avant" max="100" value="${data.anx_avant||''}"></div>
+                <div class="col-md-3"><label class="exercise-field-label">Anxiété MAX</label><input type="number" class="form-control form-control-sm ex-input" data-key="anx_max" max="100" value="${data.anx_max||''}"></div>
+                <div class="col-md-3"><label class="exercise-field-label">Anxiété FIN</label><input type="number" class="form-control form-control-sm ex-input" data-key="anx_fin" max="100" value="${data.anx_fin||''}"></div>
+            </div>
+            <div class="mb-3">
+                <label class="exercise-field-label">Avez-vous :</label>
+                <div class="d-flex flex-column gap-2 mt-1 px-2" style="background:#f8f9fa;padding:10px;border-radius:var(--r-md);">
+                    <label style="font-size:0.85rem;"><input type="radio" class="ex-check" name="habituation_strategy_${ex.id}" data-key="strat" data-val="1" ${data.strat=='1'?'checked':''} onchange="if(window.app) window.app._checkNeutralization(this.closest('.exercise-detail'))"> 1. Fait face complètement sans béquille</label>
+                    <label style="font-size:0.85rem;"><input type="radio" class="ex-check" name="habituation_strategy_${ex.id}" data-key="strat" data-val="2" ${data.strat=='2'?'checked':''} onchange="if(window.app) window.app._checkNeutralization(this.closest('.exercise-detail'))"> 2. Évité la situation après quelques secondes/minutes (Fuite)</label>
+                    <label style="font-size:0.85rem;"><input type="radio" class="ex-check" name="habituation_strategy_${ex.id}" data-key="strat" data-val="3" ${data.strat=='3'?'checked':''} onchange="if(window.app) window.app._checkNeutralization(this.closest('.exercise-detail'))"> 3. Fait face avec neutralisation/objet sécurisant (Ex: téléphone, musique, main serrée)</label>
+                </div>
+            </div>
+            <div class="habituation-alert-container" style="display:none;" class="alert alert-warning mt-2 mb-0" style="font-size:0.85rem;"></div>
+        `;
+        return html;
+    },
+
+    renderRelapsePlan(ex, patientId) {
+        const data = ExerciseStorage.get(patientId, ex.id) || {};
+        return `
+            <div class="alert alert-success" style="font-size:0.85rem;"><strong><i class="fas fa-shield-heart"></i> Plan d'action établi avec le patient.</strong> Ce plan sera disponible sur le tableau de bord en cas d'urgence.</div>
+            <div class="mb-3">
+                <label class="exercise-field-label">Symptômes précurseurs (Signaux d'alarme)</label>
+                <textarea class="notes-textarea ex-input" data-key="precurseurs" rows="3" placeholder="Ex: Je recommence à mal dormir, tensions thoraciques...">${data.precurseurs||''}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="exercise-field-label">Situations à risque</label>
+                <textarea class="notes-textarea ex-input" data-key="situations" rows="3" placeholder="Ex: Surcharge de travail, fatigue...">${data.situations||''}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="exercise-field-label">Quoi faire (To-Do List 1-2-3)</label>
+                <textarea class="notes-textarea ex-input" data-key="todo" rows="4" placeholder="1. Refaire mes exercices respiratoires\n2. Appliquer l\'habituation">${data.todo||''}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="exercise-field-label">Médication d'urgence (si applicable)</label>
+                <input type="text" class="form-control form-control-sm ex-input" data-key="meds" value="${data.meds||''}" placeholder="Ex: Lorazépam 1mg au besoin">
+            </div>
+        `;
+    },
+
+    // =====================================================
     // SAVE & RESET BINDINGS
     // =====================================================
     _bindSaveButtons(ex, patientId, container) {
@@ -621,8 +876,39 @@ const ExerciseRenderer = {
         });
         container.querySelectorAll('.ex-check').forEach(el => {
             const key = el.dataset.key;
-            if (key) data[key] = el.checked;
+            if (key) {
+                if (el.type === 'radio') {
+                    if (el.checked) data[key] = el.dataset.val;
+                } else {
+                    data[key] = el.checked;
+                }
+            }
         });
+        
+        // Custom array collection for tables
+        const arrInputs = container.querySelectorAll('.ex-input-arr');
+        if (arrInputs.length > 0) {
+            data.logs = [];
+            let currentObj = {};
+            let isRowEmpty = true;
+            arrInputs.forEach((el, index) => {
+                const arrKey = el.dataset.arr;
+                if(el.value) isRowEmpty = false;
+                currentObj[arrKey] = el.value;
+                if ((index + 1) % 4 === 0) {
+                    if(!isRowEmpty) data.logs.push({...currentObj});
+                    currentObj = {};
+                    isRowEmpty = true;
+                }
+            });
+        }
+        
+        // specific capture for IMA dynamically generated inputs
+        if (ex.type === 'ima_hierarchy') {
+            container.querySelectorAll('.ima-peur-input').forEach(el => {
+                data[el.dataset.key] = el.value;
+            });
+        }
         container.querySelectorAll('.btn-sm-check.active-yes, .btn-sm-check.active-no').forEach(el => {
             const key = el.dataset.key;
             if (key) data[key] = el.dataset.val;
