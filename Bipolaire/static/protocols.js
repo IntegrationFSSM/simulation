@@ -15,7 +15,7 @@ window.PROTOCOLS_DB = {
                     { "tool_id": "ASRM", "required": true, "recurrence": "session_1" }
                 ],
                 "worksheets": ["Lifechart_Retrospectif", "Graphique_Humeur"],
-                "guides": ["Psychoeducation_Bipolarite", "Guide_Alliance_Bipolaire"]
+                "guides": ["Guide_Modele_Vulnerabilite_Stress"]
             },
             {
                 "phase_id": "phase_2_stabilisation",
@@ -26,7 +26,7 @@ window.PROTOCOLS_DB = {
                     { "tool_id": "ASRM", "required": false, "recurrence": "session_8" }
                 ],
                 "worksheets": ["Rythmes_Sociaux", "Hygiene_De_Vie"],
-                "guides": []
+                "guides": ["Guide_Horloge_Biologique_IPSRT"]
             },
             {
                 "phase_id": "phase_3_pole_depressif",
@@ -34,7 +34,7 @@ window.PROTOCOLS_DB = {
                 "recommended_sessions": [9, 10, 11, 12, 13],
                 "assessments": [],
                 "worksheets": ["Tableau_Pensees_Automatiques", "Resolution_Problemes"],
-                "guides": []
+                "guides": ["Guide_Depression_Activation"]
             },
             {
                 "phase_id": "phase_4_pole_maniaque",
@@ -45,7 +45,7 @@ window.PROTOCOLS_DB = {
                     { "tool_id": "ASRM", "required": false, "recurrence": "session_17" }
                 ],
                 "worksheets": ["Avantages_Desavantages_Hypomanie", "Remise_Question_Pensees"],
-                "guides": []
+                "guides": ["Guide_Seduction_Hypomanie"]
             },
             {
                 "phase_id": "phase_5_prevention_rechutes",
@@ -56,7 +56,7 @@ window.PROTOCOLS_DB = {
                     { "tool_id": "ASRM", "required": false, "recurrence": "session_20" }
                 ],
                 "worksheets": ["Signes_Rechute", "Plan_Action_Urgence"],
-                "guides": ["Gestion_Stresseurs"]
+                "guides": ["Guide_Detecteur_Fumee_Prodromes"]
             }
         ]
     }

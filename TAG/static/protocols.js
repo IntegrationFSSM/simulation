@@ -25,7 +25,7 @@ window.PROTOCOLS_DB = {
                 "recommended_sessions": [2],
                 "assessments": [],
                 "worksheets": ["Carnet_AutoEnregistrement_Inquietudes"],
-                "guides": []
+                "guides": ["Guide_Prise_Conscience"]
             },
             {
                 "phase_id": "phase_3_reevaluating_usefulness",
@@ -33,7 +33,7 @@ window.PROTOCOLS_DB = {
                 "recommended_sessions": [3],
                 "assessments": [],
                 "worksheets": ["Avantages_Desavantages_Inquietudes", "Exercice_Avocat_Du_Diable"],
-                "guides": []
+                "guides": ["Guide_Utilite_Inquietudes"]
             },
             {
                 "phase_id": "phase_4_intolerance_uncertainty",

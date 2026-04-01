@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ory+ | Simulateur TCC & IPSRT \u2014 Trouble Bipolaire</title>
-    <meta name="description" content="Plateforme clinique de simulation du protocole pour le Trouble Bipolaire \u2014 Oryplus ERP">
+    <title>Ory+ | Simulateur TCC — Dépression Majeure</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="static/styles.css?v=2.0.1">
+    <!-- Custom CSS (using TAG's global design system) -->
+    <link rel="stylesheet" href="../TAG/static/styles.css?v=2.0.1">
+    <!-- Module tweaks and overrides (colors & approach cards) -->
+    <link rel="stylesheet" href="static/styles.css?v=1.0.0">
 </head>
 <body>
 
@@ -21,10 +22,10 @@
         <div class="sidebar-header">
             <div class="navbar-brand d-flex align-items-center">
                 <a href="../index.html" class="logo-toggle" id="logoToggle" style="padding:0;background:none;border:none;display:flex;align-items:center;cursor:pointer;text-decoration:none;">
-                    <img src="static/img/OryLogofig.png" alt="Logo" class="sidebar-logo" style="height:40px;object-fit:contain;margin-right:-3px;" onerror="this.style.display='none'">
+                    <img src="../TAG/static/img/OryLogofig.png" alt="Logo" class="sidebar-logo" style="height:40px;object-fit:contain;margin-right:-3px;" onerror="this.style.display='none'">
                 </a>
                 <a href="../index.html" class="brand-link" style="text-decoration:none;display:flex;align-items:center;">
-                    <img src="static/img/OryLogoBrand.png" alt="Symbol" class="brand-text-img" style="height:20px;object-fit:contain;" onerror="this.style.display='none'">
+                    <img src="../TAG/static/img/OryLogoBrand.png" alt="Symbol" class="brand-text-img" style="height:20px;object-fit:contain;" onerror="this.style.display='none'">
                 </a>
             </div>
         </div>
@@ -33,15 +34,16 @@
             <div style="padding: 15px 20px; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
                 Protocoles Cliniques
             </div>
+            <!-- ALL NAVIGATION LINKS UPDATED TO INCLUDE DEPRESSION -->
             <a href="../TAG/index.html" class="menu-item">
                 <i class="fas fa-brain"></i>
                 <span class="menu-text">TAG</span>
             </a>
-            <a href="../Depression/index.html" class="menu-item">
+            <a href="index.html" class="menu-item active">
                 <i class="fas fa-cloud-rain"></i>
                 <span class="menu-text">Dépression</span>
             </a>
-            <a href="index.html" class="menu-item active">
+            <a href="../Bipolaire/index.html" class="menu-item">
                 <i class="fas fa-arrows-alt-v"></i>
                 <span class="menu-text">Trouble Bipolaire</span>
             </a>
@@ -81,7 +83,38 @@
         </div>
     </header>
 
-    <div id="app-view"></div>
+    <div id="level-1-view" class="page-content">
+        <div class="section-header text-center" style="margin-bottom: 40px; margin-top: 20px;">
+            <h1 style="font-size:2rem;font-weight:800;color:var(--text);"><i class="fas fa-cloud-rain" style="color:var(--primary); margin-right:12px;"></i>Trouble Dépressif Majeur</h1>
+            <p style="font-size:1.05rem;color:var(--text-muted);max-width:650px;margin:12px auto 0;">Veuillez sélectionner le parcours clinique approprié selon l'évaluation bio-psycho-sociale.</p>
+        </div>
+
+        <div class="approach-grid">
+            <!-- PARCOURS INDIVIDUEL -->
+            <div class="approach-card" id="card-individuel" style="--card-color:var(--dep-blue); --card-bg:var(--dep-blue-light);" onclick="selectApproach('INDIVIDUEL')">
+                <div class="card-icon"><i class="fas fa-user"></i></div>
+                <h3>Parcours Individuel</h3>
+                <p>Protocole centré sur le triage initial, la sécurité, et le suivi continu des tâches quotidiennes, à utiliser en 1-à-1.</p>
+                <div class="badge-tag" style="background:var(--dep-blue-light); color:var(--dep-blue);">Suivi & Devoirs (Individuel)</div>
+                <div id="individuel-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
+                    <button class="btn-success-custom w-100 mb-2" onclick="event.stopPropagation(); launchDashboard('INDIVIDUEL', 'Individuel')" style="background:var(--dep-blue); border:none; padding:10px;"><i class="fas fa-user-md me-2"></i> Démarrer le Suivi Individuel</button>
+                </div>
+            </div>
+
+            <!-- PARCOURS GROUPE -->
+            <div class="approach-card" id="card-groupe" style="--card-color:var(--dep-indigo); --card-bg:var(--dep-indigo-light);" onclick="selectApproach('GROUPE')">
+                <div class="card-icon"><i class="fas fa-users-rays"></i></div>
+                <h3>Parcours de Groupe (Curriculum)</h3>
+                <p>Programme structuré en 12 séances de psychoéducation (Activation, Restructuration, Schémas).</p>
+                <div class="badge-tag" style="background:var(--dep-indigo-light); color:var(--dep-indigo);">Manuels de Groupe</div>
+                <div id="groupe-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
+                    <button class="btn-success-custom w-100" onclick="event.stopPropagation(); launchDashboard('GROUPE', 'Groupe')" style="background:var(--dep-indigo); border:none; padding:10px;"><i class="fas fa-users me-2"></i> Ouvrir le Parcours de Groupe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-view" style="display:none;"></div>
 
     <footer class="main-footer">
         &copy; <span id="footerYear"></span> Ory<sup>+</sup> — ERP Médical | CLV Tech &nbsp;
@@ -96,33 +129,26 @@
 
 <!-- ========================== TEMPLATES ========================== -->
 
-
-
 <!-- DOSSIER PATIENT -->
 <template id="tpl-dossier">
 <div>
-
-
-    <div class="row g-3">
-        <div class="col-md-12">
-            <div class="panel-card mb-3">
-                <div class="panel-card-header">
-                    <h6><i class="fas fa-list-check me-2 text-primary-c"></i>Progression des séances</h6>
-                    <span id="dossier-progress-badge" class="badge" style="background:var(--primary);color:white;font-size:0.7rem;padding:4px 10px;border-radius:20px;"></span>
-                </div>
-                <div class="panel-card-body" style="max-height:500px;overflow-y:auto;">
-                    <div class="session-timeline" id="dossier-session-timeline"></div>
-                </div>
-            </div>
+    <!-- Progression des séances (full width) -->
+    <div class="panel-card mb-3">
+        <div class="panel-card-header">
+            <h6><i class="fas fa-list-check me-2 text-primary-c"></i>Progression des séances (Trouble Dépressif Majeur)</h6>
+            <span id="dossier-progress-badge" class="badge" style="background:var(--primary);color:white;font-size:0.7rem;padding:4px 10px;border-radius:20px;"></span>
+        </div>
+        <div class="panel-card-body" style="max-height:600px;overflow-y:auto;">
+            <div class="session-timeline" id="dossier-session-timeline"></div>
         </div>
     </div>
 </div>
 </template>
 
-<!-- EXERCICES TAG -->
+<!-- EXERCICES DEPRESSION -->
 <template id="tpl-exercises">
 <div>
-    <div class="section-title"><i class="fas fa-clipboard-list text-primary-c"></i> Exercices \u2014 Protocoles TCC & IPSRT (Bipolarit\u00e9)</div>
+    <div class="section-title"><i class="fas fa-clipboard-list text-primary-c"></i> Exercices — Guide de pratique Dépression</div>
     <div class="row g-3">
         <div class="col-md-4">
             <div class="panel-card" style="position:sticky;top:80px;">
@@ -181,7 +207,7 @@
             </div>
         </div>
         <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
-            <button class="btn-ghost" onclick="app.showPanel('dossier')">
+            <button class="btn-ghost" onclick="app.goBack()">
                 <i class="fas fa-arrow-left"></i> Retour au dossier
             </button>
             <button class="btn-success-custom" id="btn-complete-session" onclick="app.completeCurrentSession()">
@@ -195,33 +221,66 @@
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="static/data.js?v=2.0.1"></script>
-<script src="static/protocols.js?v=2.0.1"></script>
-<!-- Use shared TAG storage (LocalAPI + ExerciseStorage/renderer) -->
+<!-- Module specific logic -->
+<script src="static/data.js?v=1.0.0"></script>
+<script src="static/protocols.js?v=1.0.0"></script>
+<script src="static/exercises_config.js?v=1.0.0"></script>
+<!-- Core shared logic from TAG -->
 <script src="../TAG/static/storage.js?v=2.0.1"></script>
-<script src="static/exercises_config.js?v=2.0.1"></script>
-<script src="static/exercises.js?v=2.0.1"></script>
+<script src="../TAG/static/exercises.js?v=2.0.1"></script>
 <script>
-    // Hardcoded for static version
-    window.currentTroubleId = "BIPOLAR";
+    window.currentTroubleId = "DEPRESSION_INDIVIDUEL"; // Default
+
+    function selectApproach(approach) {
+        document.getElementById('individuel-modalities').style.display = approach === 'INDIVIDUEL' ? 'block' : 'none';
+        document.getElementById('groupe-modalities').style.display = approach === 'GROUPE' ? 'block' : 'none';
+        
+        const cardIndiv = document.getElementById('card-individuel');
+        const cardGroupe = document.getElementById('card-groupe');
+        
+        if (approach === 'INDIVIDUEL') {
+            cardIndiv.style.borderColor = 'var(--dep-blue)';
+            cardIndiv.style.transform = 'translateY(-4px)';
+            cardIndiv.style.boxShadow = 'var(--shadow-lg)';
+            cardGroupe.style.borderColor = 'var(--border)';
+            cardGroupe.style.transform = 'none';
+            cardGroupe.style.boxShadow = 'var(--shadow-sm)';
+        } else {
+            cardGroupe.style.borderColor = 'var(--dep-indigo)';
+            cardGroupe.style.transform = 'translateY(-4px)';
+            cardGroupe.style.boxShadow = 'var(--shadow-lg)';
+            cardIndiv.style.borderColor = 'var(--border)';
+            cardIndiv.style.transform = 'none';
+            cardIndiv.style.boxShadow = 'var(--shadow-sm)';
+        }
+    }
+
+    function launchDashboard(approach, modality) {
+        if (modality === 'Groupe') {
+            window.currentTroubleId = 'DEPRESSION_GROUP';
+            if(window.app && window.app.showToast) app.showToast("Ouverture du Parcours Groupe (Dépression)", "success");
+        } else {
+            window.currentTroubleId = 'DEPRESSION_INDIVIDUEL';
+            if(window.app && window.app.showToast) app.showToast("Ouverture de la thérapie Individuelle", "success");
+        }
+        
+        if (window.PROTOCOLS_DB && window.PROTOCOLS_DB[window.currentTroubleId]) {
+            window.PROTOCOL = window.PROTOCOLS_DB[window.currentTroubleId];
+        }
+        
+        document.getElementById('level-1-view').style.display = 'none';
+        const appView = document.getElementById('app-view');
+        appView.style.display = 'block';
+        appView.style.animation = 'fadeIn 0.3s ease';
+
+        if (window.app && app.state && app.state.selectedPatient) {
+            app.selectPatient(app.state.selectedPatient.id);
+        }
+    }
 </script>
-<!-- Reuse TAG app logic for both troubles -->
 <script src="../TAG/static/app.js?v=2.0.2"></script>
 <script>
     document.getElementById('footerYear').textContent = new Date().getFullYear();
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.sub-menu > a.menu-item').forEach(function (trigger) {
-            trigger.addEventListener('click', function (e) {
-                e.preventDefault();
-                const parent = this.parentElement;
-                const isOpen = parent.classList.contains('open');
-                document.querySelectorAll('.sub-menu').forEach(function (sm) {
-                    if (sm !== parent) sm.classList.remove('open');
-                });
-                parent.classList.toggle('open', !isOpen);
-            });
-        });
-    });
 </script>
 </body>
 </html>

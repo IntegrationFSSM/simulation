@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Ory+ TCC Simulator — Exercise Registry
  * Protocol Psychose & Schizophrénie (PARCOURS A + PARCOURS B Groupe)
  */
@@ -35,12 +35,12 @@ const EXERCISES = [
         title: 'La Boussole des Valeurs',
         category: 'engagement', type: 'structured_form',
         defaultSessions: [2, 3],
-        description: "Définir vos objectifs de rétablissement (Famille, Travail, Loisirs) au-delà de la simple réduction des symptômes.",
+        description: "Faire définir au patient ses objectifs de rétablissement (Famille, Travail, Loisirs) au-delà de la simple réduction des symptômes.",
         fields: [
-            { key: 'famille', label: 'Famille & Relations : Quelle personne voulez-vous être ?', type: 'textarea', rows: 2 },
-            { key: 'travail', label: 'Travail / Études : Quels sont vos buts ?', type: 'textarea', rows: 2 },
-            { key: 'loisirs', label: 'Loisirs & Temps libre : Qu\'est-ce qui vous nourrit ?', type: 'textarea', rows: 2 },
-            { key: 'sante', label: 'Santé & Bien-être : Comment voulez-vous prendre soin de vous ?', type: 'textarea', rows: 2 }
+            { key: 'famille', label: 'Famille & Relations : Quelle personne le patient veut-il être ?', type: 'textarea', rows: 2 },
+            { key: 'travail', label: 'Travail / Études : Quels sont ses buts ?', type: 'textarea', rows: 2 },
+            { key: 'loisirs', label: 'Loisirs & Temps libre : Qu\'est-ce qui nourrit le patient ?', type: 'textarea', rows: 2 },
+            { key: 'sante', label: 'Santé & Bien-être : Comment le patient veut-il prendre soin de lui ?', type: 'textarea', rows: 2 }
         ],
         repeatable: false
     },
@@ -68,11 +68,11 @@ const EXERCISES = [
         title: 'Grille ABC (Situation - Croyance - Conséquence)',
         category: 'crise', type: 'structured_form',
         defaultSessions: [5, 6, 7, 8],
-        description: "Cartographier comment vos interprétations (B) des situations (A) génèrent votre détresse (C).",
+        description: "Cartographier avec le patient comment ses interprétations (B) des situations (A) génèrent sa détresse (C).",
         fields: [
-            { key: 'A_situation', label: 'A. Àvénement déclencheur (Qu\'est-ce qui s\'est passé ou quelle voix avez-vous entendue ?)', type: 'textarea', rows: 2 },
-            { key: 'B_croyance', label: 'B. Croyance / Pensée (Qu\'est-ce que cela signifie pour vous ? Ex: "Ils veulent me faire du mal")', type: 'textarea', rows: 2 },
-            { key: 'C_consequence', label: 'C. Conséquence Émotionnelle & Comportementale (Qu\'avez-vous ressenti (0-100) et fait ?)', type: 'textarea', rows: 2 }
+            { key: 'A_situation', label: 'A. Événement déclencheur (Qu\'est-ce qui s\'est passé ou quelle voix le patient a-t-il entendue ?)', type: 'textarea', rows: 2 },
+            { key: 'B_croyance', label: 'B. Croyance / Pensée (Qu\'est-ce que cela signifie pour lui ? Ex: "Ils veulent me faire du mal")', type: 'textarea', rows: 2 },
+            { key: 'C_consequence', label: 'C. Conséquence Émotionnelle & Comportementale (Qu\'est-ce que le patient a ressenti (0-100) et fait ?)', type: 'textarea', rows: 2 }
         ],
         repeatable: true
     },
@@ -105,11 +105,11 @@ const EXERCISES = [
         defaultSessions: [5, 6],
         description: "Vérifier les vulnérabilités somatiques qui augmentent les symptômes psychotiques et dépressifs.",
         items: [
-            { label: "P. L. (Physical Illness) : J'ai soigné mes douleurs ou maladies physiques." },
-            { label: "E. (Eating) : J'ai mangé de manière équilibrée aujourd'hui." },
-            { label: "A. (Avoid substances) : J'ai évité l'alcool, le cannabis et autres drogues." },
-            { label: "S. (Sleep) : J'ai dormi au moins 7-8 heures cette nuit." },
-            { label: "E. (Exercise) : J'ai fait au moins 20 minutes d'activité physique." }
+            { label: "P. L. (Physical Illness) : Le patient a soigné ses douleurs ou maladies physiques." },
+            { label: "E. (Eating) : Le patient a mangé de manière équilibrée aujourd'hui." },
+            { label: "A. (Avoid substances) : Le patient a évité l'alcool, le cannabis et autres drogues." },
+            { label: "S. (Sleep) : Le patient a dormi au moins 7-8 heures cette nuit." },
+            { label: "E. (Exercise) : Le patient a fait au moins 20 minutes d'activité physique." }
         ]
     },
 
@@ -136,12 +136,12 @@ const EXERCISES = [
         title: 'Fiche 106 : Vérifiez les faits',
         category: 'restructuration', type: 'structured_form',
         defaultSessions: [10, 11],
-        description: "Distinguer les faits réels observables (caméra vidéo) de vos interprétations.",
+        description: "Aider le patient à distinguer les faits réels observables (caméra vidéo) de ses interprétations.",
         fields: [
-            { key: 'emotion', label: '1. Quelle est l\'émotion ou la pensée paranoïaque que je veux modifier ?', type: 'textarea', rows: 2 },
-            { key: 'faits', label: '2. Quels sont les faits purs ? (Décrivez comme si vous étiez une caméra vidéo)', type: 'textarea', rows: 3 },
-            { key: 'interpretations', label: '3. Quelles sont mes interprétations ou mes ajouts à la situation ?', type: 'textarea', rows: 3 },
-            { key: 'menace', label: '4. Y a-t-il vraiment une menace immédiate et réelle ?', type: 'select', options: ['Non', 'Oui, et je dois agir', 'Peut-être, mais c\'est incertain'] }
+            { key: 'emotion', label: '1. Quelle est l\'émotion ou la pensée paranoïaque que le patient veut modifier ?', type: 'textarea', rows: 2 },
+            { key: 'faits', label: '2. Quels sont les faits purs ? (Vus comme par une caméra vidéo objective)', type: 'textarea', rows: 3 },
+            { key: 'interpretations', label: '3. Quelles sont les interprétations ou ajouts du patient à la situation ?', type: 'textarea', rows: 3 },
+            { key: 'menace', label: '4. Y a-t-il vraiment une menace immédiate et réelle ?', type: 'select', options: ['Non', 'Oui, et le patient doit agir', 'Peut-être, mais c\'est incertain'] }
         ],
         repeatable: true
     },
@@ -174,7 +174,7 @@ const EXERCISES = [
             { key: 'probleme', label: '1. Définir le problème objectivement', type: 'textarea', rows: 2 },
             { key: 'brainstorming', label: '2. Brainstorming (Écrire TOUTES les solutions possibles sans juger)', type: 'textarea', rows: 3 },
             { key: 'choix', label: '3. Solution choisie (Avantages > Inconvénients)', type: 'textarea', rows: 2 },
-            { key: 'action', label: '4. Plan d\'action (Quand et comment vais-je essayer cette solution ?)', type: 'textarea', rows: 2 }
+            { key: 'action', label: '4. Plan d\'action (Quand et comment le patient va-t-il essayer cette solution ?)', type: 'textarea', rows: 2 }
         ],
         solutionSlots: 0,
         repeatable: true
@@ -186,9 +186,9 @@ const EXERCISES = [
         defaultSessions: [15],
         description: "Planifier des activités positives (maîtrise) et anticiper les stresseurs.",
         fields: [
-            { key: 'activite', label: 'Activité de Maîtrise (Qu\'est-ce qui me fait me sentir compétent et bien ?)', type: 'text' },
+            { key: 'activite', label: 'Activité de Maîtrise (Qu\'est-ce qui fait se sentir compétent et bien le patient ?)', type: 'text' },
             { key: 'anticipation', label: 'Situation stressante à venir (ex: prendre le métro plein)', type: 'textarea', rows: 2 },
-            { key: 'coping', label: 'Compétence(s) que je vais utiliser préventivement', type: 'textarea', rows: 2 }
+            { key: 'coping', label: 'Compétence(s) que le patient va utiliser préventivement', type: 'textarea', rows: 2 }
         ]
     },
     {
@@ -196,12 +196,12 @@ const EXERCISES = [
         title: 'Plan Anti-Rechute (Carte de Sécurité)',
         category: 'consolidation', type: 'structured_form',
         defaultSessions: [16],
-        description: "La synthèse de vos signaux d'alerte et de votre filet de sécurité clinique.",
+        description: "La synthèse des signaux d'alerte du patient et de son filet de sécurité clinique.",
         fields: [
-            { key: 'signes_precoces', label: 'Mes Signes Précurseurs (Ex: perte de sommeil, isolement, début de voix floues)', type: 'textarea', rows: 3 },
-            { key: 'declencheurs', label: 'Mes Déclencheurs / Stressors habituels', type: 'textarea', rows: 2 },
-            { key: 'strategies', label: 'Ce que je peux faire IMMÉDIATEMENT (Outils, Fiche 113, Tarte des probabilités)', type: 'textarea', rows: 3 },
-            { key: 'soutien', label: 'Personnes à contacter (Proches, Thérapeute, Urgences psychiatriques)', type: 'textarea', rows: 2 }
+            { key: 'signes_precoces', label: 'Signes Précurseurs du patient (Ex: perte de sommeil, isolement, début de voix floues)', type: 'textarea', rows: 3 },
+            { key: 'declencheurs', label: 'Déclencheurs / Stressors habituels', type: 'textarea', rows: 2 },
+            { key: 'strategies', label: 'Ce que le patient peut faire IMMÉDIATEMENT (Outils, Fiche 113, Tarte des probabilités)', type: 'textarea', rows: 3 },
+            { key: 'soutien', label: 'Personnes à contacter urgemment (Proches, Thérapeute, Urgences)', type: 'textarea', rows: 2 }
         ]
     },
 
@@ -344,7 +344,7 @@ const EXERCISES = [
         title: 'Fiche 104 : Journal des Émotions et Signes',
         category: 'engagement', type: 'daily_log',
         defaultSessions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-        description: "Tracez quotidiennement/hebdomadairement vos expériences psychotiques et vos émotions.",
+        description: "Demander au patient de tracer quotidiennement ses expériences psychotiques et ses émotions.",
         columns: [
             { key: 'date', label: 'Date', inputType: 'date', width: '130px' },
             { key: 'evenement', label: 'Àvénement / Déclencheur', inputType: 'text', placeholder: "Qu'est-ce qui s'est passé ?" },
@@ -364,13 +364,13 @@ const EXERCISES = [
         title: 'La Matrice ACT',
         category: 'grp_act', type: 'structured_form',
         defaultSessions: [1],
-        description: "Identifiez ce que vous ressentez intérieurement et les actions d'évitement qui vous éloignent de vos objectifs.",
+        description: "Aider le patient à identifier ce qu'il ressent intérieurement et les actions d'évitement qui l'éloignent de ses objectifs.",
         fields: [
-            { key: 'interieur', label: '1. INTÀRIEUR — Ce que je ressens (voix, peur, douleur, pensées intrusives) :', type: 'textarea', rows: 3, placeholder: 'Ex: J\'entends des voix menaçantes, je ressens une peur constante de sortir...' },
-            { key: 'eloignement', label: '2. ACTIONS D\'ÀLOIGNEMENT — Ce que je fais pour fuir/éviter :', type: 'textarea', rows: 3, placeholder: 'Ex: Je m\'isole, je reste au lit, j\'évite les gens, je vérifie les serrures...' },
-            { key: 'valeurs', label: '3. CE QUI EST IMPORTANT POUR MOI — Mes valeurs, mes buts :', type: 'textarea', rows: 3, placeholder: 'Ex: Ma famille, reprendre les études, avoir des amis, me sentir utile...' },
-            { key: 'rapprochement', label: '4. ACTIONS DE RAPPROCHEMENT — Ce qui me rapproche de mes valeurs :', type: 'textarea', rows: 3, placeholder: 'Ex: Appeler ma mère, sortir marcher 10 min, aller au groupe...' },
-            { key: 'prise_conscience', label: '5. PRISE DE CONSCIENCE — Mes actions d\'éloignement m\'aident-elles ? (Le contrôle est-il la solution ou le problème ?)', type: 'textarea', rows: 2 }
+            { key: 'interieur', label: '1. INTÉRIEUR — Ce que ressent le patient (voix, peur, douleur) :', type: 'textarea', rows: 3, placeholder: 'Ex: Il entend des voix menaçantes, ressent une peur de sortir...' },
+            { key: 'eloignement', label: '2. ACTIONS D\'ÉLOIGNEMENT — Ce que le patient fait pour fuir/éviter :', type: 'textarea', rows: 3, placeholder: 'Ex: S\'isoler, rester au lit, éviter les gens...' },
+            { key: 'valeurs', label: '3. CE QUI EST IMPORTANT — Les valeurs et buts du patient :', type: 'textarea', rows: 3, placeholder: 'Ex: Famille, études, amis...' },
+            { key: 'rapprochement', label: '4. ACTIONS DE RAPPROCHEMENT — Ce qui le rapproche de ses valeurs :', type: 'textarea', rows: 3, placeholder: 'Ex: Appeler un proche, sortir 10 min...' },
+            { key: 'prise_conscience', label: '5. PRISE DE CONSCIENCE — Les actions d\'éloignement aident-elles le patient ?', type: 'textarea', rows: 2 }
         ],
         repeatable: true
     },
@@ -379,15 +379,15 @@ const EXERCISES = [
         title: 'Les Passagers de l\'Autobus',
         category: 'grp_act', type: 'structured_form',
         defaultSessions: [2],
-        description: "Exercice de défusion cognitive : vos voix et peurs sont des passagers à l'arrière du bus, mais c'est VOUS qui tenez le volant.",
+        description: "Exercice de défusion cognitive : les voix sont des passagers à l'arrière du bus, mais c'est le patient qui tient le volant.",
         fields: [
-            { key: 'direction', label: '1. JE SUIS LE CONDUCTEUR — Ma direction choisie (mes valeurs, là où je veux aller) :', type: 'textarea', rows: 2, placeholder: 'Ex: Vers une vie sociale active, vers l\'autonomie...' },
-            { key: 'passager_1', label: '2. PASSAGER 1 — Nommez une voix/peur qui essaie de prendre le volant :', type: 'textarea', rows: 1, placeholder: 'Ex: La voix qui dit "Tu es en danger"' },
-            { key: 'passager_1_dit', label: 'Que dit ce passager pour vous faire changer de direction ?', type: 'textarea', rows: 2, placeholder: 'Ex: "Si tu sors, il va t\'arriver quelque chose de terrible"' },
-            { key: 'passager_2', label: '3. PASSAGER 2 — Autre voix/peur/pensée :', type: 'textarea', rows: 1, placeholder: 'Ex: La pensée "Personne ne t\'apprécie vraiment"' },
+            { key: 'direction', label: '1. LE CONDUCTEUR — La direction choisie par le patient (ses valeurs) :', type: 'textarea', rows: 2, placeholder: 'Ex: Vers une vie sociale active...' },
+            { key: 'passager_1', label: '2. PASSAGER 1 — Nommer une voix/peur qui essaie de prendre le volant :', type: 'textarea', rows: 1, placeholder: 'Ex: La voix qui dit "En danger"' },
+            { key: 'passager_1_dit', label: 'Que dit ce passager pour faire changer le patient de direction ?', type: 'textarea', rows: 2, placeholder: 'Ex: "Si tu sors, terrible"' },
+            { key: 'passager_2', label: '3. PASSAGER 2 — Autre voix/peur/pensée :', type: 'textarea', rows: 1, placeholder: 'Ex: La pensée "Personne ne t\'apprécie"' },
             { key: 'passager_2_dit', label: 'Que dit ce passager ?', type: 'textarea', rows: 2 },
-            { key: 'defusion', label: '4. DÀFUSION — "J\'ai la pensée que..." au lieu de "C\'est vrai que..." — Reformulez chaque voix avec cette distance :', type: 'textarea', rows: 3, placeholder: 'Ex: "J\'ai la pensée que je suis en danger" (ce n\'est PAS la même chose que "Je suis en danger")' },
-            { key: 'volant', label: '5. Comment allez-vous garder le volant dirigé vers l\'avant, même avec ces passagers bruyants ?', type: 'textarea', rows: 2 }
+            { key: 'defusion', label: '4. DÉFUSION — Reformuler chaque voix avec distance ("J\'ai la pensée que...") :', type: 'textarea', rows: 3, placeholder: 'Ex: Le patient se dit "J\'ai la pensée que je suis en danger"' },
+            { key: 'volant', label: '5. Comment le patient va-t-il garder le volant dirigé vers l\'avant malgré cela ?', type: 'textarea', rows: 2 }
         ],
         repeatable: true
     },
@@ -398,11 +398,11 @@ const EXERCISES = [
         defaultSessions: [3],
         description: "Comprendre que lutter contre les symptômes épuise : la solution est de lâcher la corde, pas de tirer plus fort.",
         fields: [
-            { key: 'monstre', label: '1. LE MONSTRE — Ce contre quoi je lutte (voix, paranoïa, anxiété, souvenirs) :', type: 'textarea', rows: 2, placeholder: 'Ex: Les voix qui me disent que je suis nul, la peur constante d\'être suivi...' },
-            { key: 'corde', label: '2. LA CORDE — Les stratégies de lutte que j\'utilise (comment je tire) :', type: 'textarea', rows: 3, placeholder: 'Ex: Argumenter avec les voix, vérifier sans cesse, m\'isoler pour ne pas entendre, consommer...' },
-            { key: 'cout', label: '3. LE COÛT — L\'énergie que cette lutte me coûte (relations, santé, joie, projets abandonnés) :', type: 'textarea', rows: 2 },
-            { key: 'lacher', label: '4. LÂCHER LA CORDE — Le monstre ne disparaît PAS, mais je suis libre de mes mouvements. Que se passe-t-il si j\'accepte sa présence sans lutter ?', type: 'textarea', rows: 3, placeholder: 'Ex: Les voix sont toujours là, mais au lieu de crier pour les couvrir, je les laisse parler pendant que je fais mes activités.' },
-            { key: 'energie', label: '5. L\'ÀNERGIE LIBÀRÀE — Ce que je pourrais faire avec cette énergie récupérée :', type: 'textarea', rows: 2 }
+            { key: 'monstre', label: '1. LE MONSTRE — Ce contre quoi le patient lutte (voix, paranoïa, anxiété) :', type: 'textarea', rows: 2, placeholder: 'Ex: Les voix, la peur d\'être suivi...' },
+            { key: 'corde', label: '2. LA CORDE — Les stratégies de lutte qu\'il utilise (comment il tire) :', type: 'textarea', rows: 3, placeholder: 'Ex: Argumenter, vérifier, s\'isoler...' },
+            { key: 'cout', label: '3. LE COÛT — L\'énergie que cette lutte lui coûte (relations, santé, projets) :', type: 'textarea', rows: 2 },
+            { key: 'lacher', label: '4. LÂCHER LA CORDE — Que se passe-t-il s\'il accepte sa présence sans lutter ?', type: 'textarea', rows: 3, placeholder: 'Ex: Laisser parler les voix tout en agissant.' },
+            { key: 'energie', label: '5. L\'ÉNERGIE LIBÉRÉE — Ce que le patient pourrait faire avec cette énergie :', type: 'textarea', rows: 2 }
         ],
         repeatable: true
     },
@@ -411,14 +411,14 @@ const EXERCISES = [
         title: 'La Boussole des Valeurs (ACT)',
         category: 'grp_act', type: 'structured_form',
         defaultSessions: [4],
-        description: "Définissez ce qui est réellement important pour vous, pour donner un sens à la tolérance de la détresse et guider l'action engagée.",
+        description: "Faire définir au patient ce qui est important pour lui, pour guider l'action engagée.",
         fields: [
-            { key: 'famille', label: '1. FAMILLE & RELATIONS — Quelle personne voulez-vous être dans vos relations ?', type: 'textarea', rows: 2, placeholder: 'Ex: Un parent présent, un ami fiable, un partenaire attentif...' },
-            { key: 'travail', label: '2. TRAVAIL / ÀTUDES — Quels buts professionnels ou éducatifs comptent pour vous ?', type: 'textarea', rows: 2, placeholder: 'Ex: Reprendre une formation, trouver un emploi adapté...' },
-            { key: 'loisirs', label: '3. LOISIRS & CRÀATIVITÀ — Qu\'est-ce qui vous nourrit intérieurement ?', type: 'textarea', rows: 2, placeholder: 'Ex: La musique, le dessin, la marche, le jardinage...' },
-            { key: 'sante', label: '4. SANTÀ & BIEN-ÊTRE — Comment voulez-vous prendre soin de votre corps et esprit ?', type: 'textarea', rows: 2 },
-            { key: 'spiritualite', label: '5. SENS & SPIRITUALITÀ — Qu\'est-ce qui donne du sens à votre vie ?', type: 'textarea', rows: 2 },
-            { key: 'action_engagee', label: '6. ACTION ENGAGÀE — Une action concrète cette semaine, alignée avec une de ces valeurs (même toute petite) :', type: 'textarea', rows: 2, placeholder: 'Ex: Lundi, j\'appelle ma sœur pendant 5 minutes (valeur: famille).' }
+            { key: 'famille', label: '1. FAMILLE & RELATIONS — Quelle personne le patient veut-il être ?', type: 'textarea', rows: 2, placeholder: 'Ex: Ami fiable, parent présent...' },
+            { key: 'travail', label: '2. TRAVAIL / ÉTUDES — Quels buts professionnels comptent pour lui ?', type: 'textarea', rows: 2, placeholder: 'Ex: Reprendre une formation...' },
+            { key: 'loisirs', label: '3. LOISIRS & CRÉATIVITÉ — Qu\'est-ce qui le nourrit intérieurement ?', type: 'textarea', rows: 2, placeholder: 'Ex: Musique, marche...' },
+            { key: 'sante', label: '4. SANTÉ & BIEN-ÊTRE — Comment le patient veut-il prendre soin de lui ?', type: 'textarea', rows: 2 },
+            { key: 'spiritualite', label: '5. SENS & SPIRITUALITÉ — Qu\'est-ce qui donne du sens à sa vie ?', type: 'textarea', rows: 2 },
+            { key: 'action_engagee', label: '6. ACTION ENGAGÉE — Une action concrète que le patient fera cette semaine :', type: 'textarea', rows: 2, placeholder: 'Ex: Appeler sa sœur (famille).' }
         ],
         repeatable: true
     },

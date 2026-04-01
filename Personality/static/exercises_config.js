@@ -41,7 +41,7 @@ let EXERCISES = [
             { key: 'consequences', label: '6) Conséquences (court / long terme)', type: 'textarea', rows: 3 },
             { key: 'competences', label: '7) Compétences possibles / alternatives', type: 'textarea', rows: 3 },
             { key: 'plan', label: '8) Plan de prévention / réparation', type: 'textarea', rows: 3 },
-            { key: 'apprentissages', label: '9) Apprentissages (ce que je retiens)', type: 'textarea', rows: 2 }
+            { key: 'apprentissages', label: '9) Apprentissages (ce que le patient retient)', type: 'textarea', rows: 2 }
         ]
     },
     // ==========================================
@@ -326,7 +326,7 @@ let EXERCISES = [
             { key: 'declencheur', label: 'Événement déclencheur', type: 'textarea', rows: 2 },
             { key: 'physique', label: 'Changements physiques / Sensations corporelles', type: 'textarea', rows: 2 },
             { key: 'urge', label: 'Pulsion / Tendance à l\'action', type: 'textarea', rows: 2 },
-            { key: 'action_faite', label: 'Ce que j\'ai fait finalement', type: 'textarea', rows: 2 }
+            { key: 'action_faite', label: 'Ce que le patient a fait finalement', type: 'textarea', rows: 2 }
         ]
     },
     {
@@ -392,7 +392,7 @@ let EXERCISES = [
         fields: [
             { key: 'realite', label: 'La réalité perturbante à accepter', type: 'textarea', rows: 2 },
             { key: 'obstacles', label: 'Ce qui interfère avec mon acceptation (colère, déni)', type: 'textarea', rows: 2 },
-            { key: 'pratique', label: 'Comment j\'ai pratiqué l\'acceptation aujourd\'hui', type: 'textarea', rows: 2 },
+            { key: 'pratique', label: 'Comment le patient a pratiqué l\'acceptation aujourd\'hui', type: 'textarea', rows: 2 },
             { key: 'niveau', label: 'Niveau d\'acceptation atteint (0-5)', type: 'number', min: 0, max: 5 }
         ]
     },
@@ -418,7 +418,7 @@ let EXERCISES = [
         id: 'DBT_Fiche_13_accepte', ref: 'TCD-F13b', title: 'Fiche 13b : ACCEPTE / IMPROVE', category: 'gestion_crise', type: 'structured_form',
         description: 'Distraction temporaire et amélioration du moment.',
         fields: [
-            { key: 'accepte', label: 'Survie à la crise (ACCEPTE) - Qu\'avez-vous fait ?', type: 'textarea', rows: 3, placeholder: 'Activités, Contributions, Comparaisons, Émotions opposées, Repousser, Pensées, Sensations' },
+            { key: 'accepte', label: 'Survie à la crise (ACCEPTE) - Qu\'est-ce que le patient a fait ?', type: 'textarea', rows: 3, placeholder: 'Activités, Contributions, Comparaisons, Émotions opposées, Repousser, Pensées, Sensations' },
             { key: 'improve', label: 'Améliorer le moment (IMPROVE)', type: 'textarea', rows: 3, placeholder: 'Imagerie, Sens, Prière/Méditation, Relaxation, O (Une chose à la fois), Vacances, Encouragements' }
         ]
     },
@@ -427,7 +427,7 @@ let EXERCISES = [
         description: 'Quand l\'esprit dérive vers le jugement ou la non-acceptation, pratiquer la réorientation.',
         fields: [
             { key: 'derives', label: 'Où l\'esprit a-t-il dérivé ?', type: 'textarea', rows: 2 },
-            { key: 'reorientation', label: 'Comment j\'ai ramené mon esprit vers la réalité', type: 'textarea', rows: 2 }
+            { key: 'reorientation', label: 'Comment le patient a ramené son esprit vers la réalité', type: 'textarea', rows: 2 }
         ]
     },
     {
@@ -446,16 +446,16 @@ let EXERCISES = [
             { key: 'objectif', label: 'Objectif de l\'interaction', type: 'text' },
             { key: 'competence', label: 'Acronyme principalement utilisé', type: 'select', options: ['DEAR MAN (Obtenir qqchose)', 'GIVE (Entretenir la relation)', 'FAST (Garder son respect)'] },
             { key: 'description', label: 'Déroulement de l\'interaction', type: 'textarea', rows: 3 },
-            { key: 'resultat', label: 'Ai-je atteint mon objectif ? Ai-je gardé la relation / mon respect ?', type: 'textarea', rows: 2 }
+            { key: 'resultat', label: 'Le patient a-t-il atteint son objectif ? A-t-il gardé la relation / son respect ?', type: 'textarea', rows: 2 }
         ]
     },
     {
         id: 'DBT_Fiche_25', ref: 'TCD-F25', title: 'Fiche 25 : Valider les Autres', category: 'tcd_base', type: 'structured_form',
         description: 'Valider l\'expérience, l\'émotion ou la souffrance de l\'autre de manière authentique.',
         fields: [
-            { key: 'personne', label: 'Qui ai-je validé ?', type: 'text' },
-            { key: 'niveaux', label: 'Quel niveau de validation ai-je utilisé ?', type: 'select', options: ['1. Être attentif', '2. Relancer/Répéter', '3. Mettre des mots', '4. Historique', '5. Circonstances actuelles', '6. Authenticité radicale'] },
-            { key: 'phrase', label: 'Phrase exacte que j\'ai dite', type: 'textarea', rows: 2 }
+            { key: 'personne', label: 'Qui le patient a-t-il validé ?', type: 'text' },
+            { key: 'niveaux', label: 'Quel niveau de validation a-t-il utilisé ?', type: 'select', options: ['1. Être attentif', '2. Relancer/Répéter', '3. Mettre des mots', '4. Historique', '5. Circonstances actuelles', '6. Authenticité radicale'] },
+            { key: 'phrase', label: 'Phrase exacte que le patient a dite', type: 'textarea', rows: 2 }
         ]
     },
     {
@@ -470,7 +470,7 @@ let EXERCISES = [
         id: 'DBT_Fiche_27', ref: 'TCD-F27', title: 'Fiche 27 : Renforcement', category: 'tcd_base', type: 'structured_form',
         description: 'Utiliser le renforcement (positif ou négatif) pour augmenter un comportement souhaité.',
         fields: [
-            { key: 'cible', label: 'Comportement cible à augmenter (chez moi ou l\'autre)', type: 'textarea', rows: 1 },
+            { key: 'cible', label: 'Comportement cible à augmenter (chez le patient ou l\'autre)', type: 'textarea', rows: 1 },
             { key: 'renforcateur', label: 'Renforçateur donné ou retiré', type: 'textarea', rows: 2 }
         ]
     },
@@ -622,8 +622,8 @@ let EXERCISES = [
         description: 'Grille cognitive où le patient liste objectivement les preuves pour et contre chaque schéma identifié, en remontant dans toute sa biographie.',
         fields: [
             { key: 'schema_cible', label: 'Schéma ciblé (ex: Abandon, Méfiance, Imperfection…)', type: 'text' },
-            { key: 'preuves_pour', label: 'Preuves allant EN FAVEUR du schéma (expériences de vie qui le confirment)', type: 'textarea', rows: 5, placeholder: 'Listez chaque événement, relation ou souvenir qui semble confirmer ce schéma…' },
-            { key: 'preuves_contre', label: 'Preuves allant CONTRE le schéma (expériences qui le contredisent)', type: 'textarea', rows: 5, placeholder: 'Listez les moments où ce schéma ne s\'est PAS vérifié, les relations positives, les réussites…' },
+            { key: 'preuves_pour', label: 'Preuves allant EN FAVEUR du schéma (expériences de vie qui le confirment)', type: 'textarea', rows: 5, placeholder: 'Le patient liste chaque événement, relation ou souvenir qui semble confirmer ce schéma…' },
+            { key: 'preuves_contre', label: 'Preuves allant CONTRE le schéma (expériences qui le contredisent)', type: 'textarea', rows: 5, placeholder: 'Le patient liste les moments où ce schéma ne s\'est PAS vérifié, les relations positives, les réussites…' },
             { key: 'conclusion', label: 'Conclusion : Le schéma est-il une vérité absolue ou un biais ?', type: 'textarea', rows: 3 },
             { key: 'nouvelle_croyance', label: 'Nouvelle croyance plus équilibrée', type: 'textarea', rows: 2 }
         ]
@@ -640,7 +640,7 @@ let EXERCISES = [
             { key: 'schema_emotion', label: 'Schéma activé / Émotion', inputType: 'text', placeholder: 'Ex: Abandon → Panique' },
             { key: 'pensees_auto', label: 'Pensées automatiques', inputType: 'text', placeholder: 'Ex: Il va me quitter' },
             { key: 'pensees_adaptees', label: 'Réponse de l\'Adulte Sain', inputType: 'text', placeholder: 'Ex: Ce n\'est pas un abandon' },
-            { key: 'action', label: 'Action / Résultat', inputType: 'text', placeholder: 'Ce que j\'ai fait' }
+            { key: 'action', label: 'Action / Résultat', inputType: 'text', placeholder: 'Ce que le patient a fait' }
         ]
     },
     {
@@ -650,12 +650,12 @@ let EXERCISES = [
         resourcePdf: 'Resources/fiche-daide-thérapeutique.pdf',
         description: 'Formulaire à trous rédigé à froid avec le thérapeute. Le patient la garde sur lui et la relit en situation de crise pour court-circuiter le schéma.',
         fields: [
-            { key: 'moment', label: 'En ce moment, je ressens…', type: 'textarea', rows: 2, placeholder: 'Décrivez l\'émotion et les sensations physiques actuelles' },
-            { key: 'schema_actif', label: 'C\'est probablement mon schéma de… qui s\'active.', type: 'text', placeholder: 'Ex: Abandon, Méfiance, Imperfection' },
-            { key: 'mode_actif', label: 'Je suis dans le mode…', type: 'select', options: ['Enfant vulnérable', 'Enfant en colère', 'Parent punitif', 'Parent exigeant', 'Protecteur détaché', 'Capitulateur docile', 'Sur-compensateur'] },
-            { key: 'realite', label: 'Je sais que la réalité, c\'est que…', type: 'textarea', rows: 3, placeholder: 'Reformulez les faits objectifs, ce que votre Adulte Sain dirait' },
-            { key: 'action_saine', label: 'En tant qu\'Adulte Sain, je vais…', type: 'textarea', rows: 2, placeholder: 'L\'action concrète et saine que je vais poser maintenant' },
-            { key: 'rappel', label: 'Je mérite…', type: 'textarea', rows: 1, placeholder: 'Ex: d\'être aimé(e), d\'être traité(e) avec respect, de me faire confiance' }
+            { key: 'moment', label: 'En ce moment, le patient ressent…', type: 'textarea', rows: 2, placeholder: 'Le patient décrit l\'émotion et les sensations physiques actuelles' },
+            { key: 'schema_actif', label: 'C\'est probablement son schéma de… qui s\'active.', type: 'text', placeholder: 'Ex: Abandon, Méfiance, Imperfection' },
+            { key: 'mode_actif', label: 'Le patient est dans le mode…', type: 'select', options: ['Enfant vulnérable', 'Enfant en colère', 'Parent punitif', 'Parent exigeant', 'Protecteur détaché', 'Capitulateur docile', 'Sur-compensateur'] },
+            { key: 'realite', label: 'Le patient sait que la réalité, c\'est que…', type: 'textarea', rows: 3, placeholder: 'Reformuler les faits objectifs, ce que l\'Adulte Sain dirait' },
+            { key: 'action_saine', label: 'En tant qu\'Adulte Sain, le patient va…', type: 'textarea', rows: 2, placeholder: 'L\'action concrète et saine que le patient va poser maintenant' },
+            { key: 'rappel', label: 'Le patient mérite…', type: 'textarea', rows: 1, placeholder: 'Ex: d\'être aimé(e), d\'être traité(e) avec respect, de se faire confiance' }
         ]
     }
 ];

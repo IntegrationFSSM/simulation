@@ -1427,16 +1427,23 @@ const app = {
                     <button class="btn-sm-icon" onclick="document.getElementById('scale-modal').remove()"><i class="fas fa-xmark"></i></button>
                 </div>
                 <div class="modal-panel-body">
-                    ${scale.items.map((q, i) => `
+                    ${scale.items.map((q, i) => {
+                        const qText = typeof q === 'object' ? q.text : q;
+                        const qInverse = typeof q === 'object' ? q.inverseScore : false;
+                        const qOptions = (typeof q === 'object' && q.options) ? q.options : scale.options;
+                        return `
                         <div class="scale-item">
-                            <div class="scale-question">${i + 1}. ${q}</div>
+                            <div class="scale-question">${i + 1}. ${qText}</div>
                             <div class="scale-options">
-                                ${scale.options.map((opt, v) => `
-                                    <div class="scale-option" data-scale="${scaleKey}" data-item="${i}" data-val="${v}" onclick="app.selectOption(this)">${opt}</div>
-                                `).join('')}
+                                ${qOptions.map((opt, v) => {
+                                    const actualVal = qInverse ? (qOptions.length - 1 - v) : v;
+                                    const displayOpt = opt.replace(/\s*\(\d+\)$/, "");
+                                    return `<div class="scale-option" data-scale="${scaleKey}" data-item="${i}" data-val="${actualVal}" onclick="app.selectOption(this)">${displayOpt}</div>`;
+                                }).join('')}
                             </div>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                     <div class="score-display mt-3">
                         <div class="score-number" id="score-${scaleKey}">0</div>
                         <div>

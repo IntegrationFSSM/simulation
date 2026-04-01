@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ory+ | Simulateur TCD — Personnalité Limite (TPL)</title>
-    <meta name="description" content="Plateforme clinique de simulation du protocole pour le Trouble de la Personnalité Limite (DBT/TCD) — Oryplus ERP">
+    <title>Ory+ | Simulateur TCC — Protocoles Addictions (TLU)</title>
+    <meta name="description" content="Plateforme clinique de simulation du protocole pour les Troubles Liés à l'Usage de Substances (TLU) — Oryplus ERP">
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
@@ -46,7 +46,7 @@
                 <i class="fas fa-arrows-alt-v"></i>
                 <span class="menu-text">Trouble Bipolaire</span>
             </a>
-            <a href="index.html" class="menu-item active">
+            <a href="../Personality/index.html" class="menu-item">
                 <i class="fas fa-user-shield"></i>
                 <span class="menu-text">Personnalité Limite</span>
             </a>
@@ -54,7 +54,7 @@
                 <i class="fas fa-eye"></i>
                 <span class="menu-text">Psychose & Schizophrénie</span>
             </a>
-            <a href="../TLU/index.html" class="menu-item">
+            <a href="index.html" class="menu-item active">
                 <i class="fas fa-wine-bottle"></i>
                 <span class="menu-text">Addictions (TLU)</span>
             </a>
@@ -75,8 +75,6 @@
                 <i class="fas fa-trash-alt"></i>
             </button>
 
-
-
             <div class="user-chip">
                 <div class="avatar">PSY</div>
                 <span class="uname">Clinique Lavale</span>
@@ -84,33 +82,32 @@
         </div>
     </header>
 
-    <div id="level-1-view" class="page-content">
+       <div id="level-1-view" class="page-content">
         <div class="section-header text-center" style="margin-bottom: 40px; margin-top: 20px;">
-            <h1 style="font-size:2rem;font-weight:800;color:var(--text);"><i class="fas fa-user-shield" style="color:var(--tpl-purple); margin-right:12px;"></i>Trouble de la Personnalité Limite</h1>
-            <p style="font-size:1.05rem;color:var(--text-muted);max-width:650px;margin:12px auto 0;">Veuillez sélectionner l'approche thérapeutique et la modalité de prise en charge appropriée pour votre patient.</p>
+            <h1 style="font-size:2rem;font-weight:800;color:var(--text);"><i class="fas fa-wine-bottle" style="color:var(--tlu-orange); margin-right:12px;"></i>Troubles Liés à l'Usage de Substances</h1>
+            <p style="font-size:1.05rem;color:var(--text-muted);max-width:650px;margin:12px auto 0;">Veuillez sélectionner le parcours clinique approprié selon l'évaluation bio-psycho-sociale.</p>
         </div>
 
         <div class="approach-grid">
-            <!-- DBT -->
-            <div class="approach-card" id="card-dbt" style="--card-color:var(--tpl-teal); --card-bg:var(--tpl-teal-light);" onclick="selectApproach('DBT')">
-                <div class="card-icon"><i class="fas fa-balance-scale"></i></div>
-                <h3>Thérapie Comportementale Dialectique (TCD)</h3>
-                <p>Protocole standard de M. Linehan axé sur la tolérance à la détresse, la régulation des émotions et l'efficacité interpersonnelle.</p>
-                <div class="badge-tag">Protocole Complet</div>
-                <div id="dbt-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
-                    <button class="btn-success-custom w-100 mb-2" onclick="event.stopPropagation(); launchDashboard('DBT', 'Individuel')" style="background:var(--tpl-teal); padding:10px;"><i class="fas fa-user me-2"></i> TCD Individuelle</button>
-                    <button class="btn-ghost w-100" onclick="event.stopPropagation(); launchDashboard('DBT', 'Groupe')" style="padding:10px;"><i class="fas fa-users me-2"></i> Entraînement aux Compétences (Groupe)</button>
+            <!-- PARCOURS INDIVIDUEL -->
+            <div class="approach-card" id="card-individuel" style="--card-color:var(--tlu-orange); --card-bg:var(--tlu-orange-light);" onclick="selectApproach('INDIVIDUEL')">
+                <div class="card-icon"><i class="fas fa-user"></i></div>
+                <h3>Parcours Individuel (L'Introspection)</h3>
+                <p>Protocole en 16 séances centré sur la conceptualisation personnalisée, l'analyse fonctionnelle des rechutes et la restructuration des croyances.</p>
+                <div class="badge-tag">Protocole Complet (16 Séances)</div>
+                <div id="individuel-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
+                    <button class="btn-success-custom w-100 mb-2" onclick="event.stopPropagation(); launchDashboard('INDIVIDUEL', 'Individuel')" style="background:var(--tlu-orange); border:none; padding:10px;"><i class="fas fa-user-md me-2"></i> Démarrer le Suivi Individuel</button>
                 </div>
             </div>
 
-            <!-- SCHEMA -->
-            <div class="approach-card" id="card-schema" style="--card-color:var(--tpl-purple); --card-bg:var(--tpl-purple-light);" onclick="selectApproach('SCHEMA')">
-                <div class="card-icon"><i class="fas fa-project-diagram"></i></div>
-                <h3>Thérapie des Schémas</h3>
-                <p>Approche de J. Young ciblant les schémas précoces inadaptés et la restructuration profonde des modes cognitifs.</p>
-                <div id="schema-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
-                    <button class="btn-success-custom w-100 mb-2" onclick="event.stopPropagation(); launchDashboard('SCHEMA', 'Individuel')" style="background:var(--tpl-purple); padding:10px;"><i class="fas fa-user me-2"></i> Schémas Individuel</button>
-                    <button class="btn-ghost w-100" onclick="event.stopPropagation(); launchDashboard('SCHEMA', 'Groupe')" style="padding:10px;"><i class="fas fa-users me-2"></i> Groupe Schémas</button>
+            <!-- PARCOURS GROUPE -->
+            <div class="approach-card" id="card-groupe" style="--card-color:var(--tlu-cyan); --card-bg:var(--tlu-cyan-light);" onclick="selectApproach('GROUPE')">
+                <div class="card-icon"><i class="fas fa-users-rays"></i></div>
+                <h3>Parcours de Groupe (Entraînement Social)</h3>
+                <p>Programme de consolidation pour l'affirmation de soi, le refus en situation à risque, et la tolérance à la détresse (Mindfulness & TCD adaptées).</p>
+                <div class="badge-tag" style="background:var(--tlu-cyan-light); color:var(--tlu-cyan);">Entraînement des Compétences</div>
+                <div id="groupe-modalities" style="display:none; width:100%; margin-top:15px; animation: fadeIn 0.2s;">
+                    <button class="btn-success-custom w-100" onclick="event.stopPropagation(); launchDashboard('GROUPE', 'Groupe')" style="background:var(--tlu-cyan); border:none; padding:10px;"><i class="fas fa-users me-2"></i> Ouvrir le Suivi de Groupe</button>
                 </div>
             </div>
         </div>
@@ -125,95 +122,48 @@
 
 <script>
 function selectApproach(approach) {
-    document.getElementById('dbt-modalities').style.display = approach === 'DBT' ? 'block' : 'none';
-    document.getElementById('schema-modalities').style.display = approach === 'SCHEMA' ? 'block' : 'none';
+    document.getElementById('individuel-modalities').style.display = approach === 'INDIVIDUEL' ? 'block' : 'none';
+    document.getElementById('groupe-modalities').style.display = approach === 'GROUPE' ? 'block' : 'none';
     
-    const cardDbt = document.getElementById('card-dbt');
-    const cardSchema = document.getElementById('card-schema');
+    const cardIndiv = document.getElementById('card-individuel');
+    const cardGroupe = document.getElementById('card-groupe');
     
-    if (approach === 'DBT') {
-        cardDbt.style.borderColor = 'var(--tpl-teal)';
-        cardDbt.style.transform = 'translateY(-4px)';
-        cardDbt.style.boxShadow = 'var(--shadow-lg)';
-        cardSchema.style.borderColor = 'var(--border)';
-        cardSchema.style.transform = 'none';
-        cardSchema.style.boxShadow = 'var(--shadow-sm)';
+    if (approach === 'INDIVIDUEL') {
+        cardIndiv.style.borderColor = 'var(--tlu-orange)';
+        cardIndiv.style.transform = 'translateY(-4px)';
+        cardIndiv.style.boxShadow = 'var(--shadow-lg)';
+        cardGroupe.style.borderColor = 'var(--border)';
+        cardGroupe.style.transform = 'none';
+        cardGroupe.style.boxShadow = 'var(--shadow-sm)';
     } else {
-        cardSchema.style.borderColor = 'var(--tpl-purple)';
-        cardSchema.style.transform = 'translateY(-4px)';
-        cardSchema.style.boxShadow = 'var(--shadow-lg)';
-        cardDbt.style.borderColor = 'var(--border)';
-        cardDbt.style.transform = 'none';
-        cardDbt.style.boxShadow = 'var(--shadow-sm)';
+        cardGroupe.style.borderColor = 'var(--tlu-cyan)';
+        cardGroupe.style.transform = 'translateY(-4px)';
+        cardGroupe.style.boxShadow = 'var(--shadow-lg)';
+        cardIndiv.style.borderColor = 'var(--border)';
+        cardIndiv.style.transform = 'none';
+        cardIndiv.style.boxShadow = 'var(--shadow-sm)';
     }
 }
 
 function launchDashboard(approach, modality) {
-    if (approach === 'SCHEMA') {
-        // Optionnel : un petit message pour indiquer que le protocole Schéma n'est pas encore complet
-        app.showToast("Ouverture de l'environnement Schéma (" + modality + ") - Mode aperçu", "info");
+    if (modality === 'Groupe') {
+        window.currentTroubleId = 'TLU_GROUP';
+        if(window.app && window.app.showToast) app.showToast("Ouverture du Parcours Groupe (TLU)", "success");
     } else {
-        app.showToast("Ouverture de l'environnement TCD (" + modality + ")", "success");
+        window.currentTroubleId = 'TLU_INDIVIDUEL';
+        if(window.app && window.app.showToast) app.showToast("Ouverture de l'environnement TLU Individuel", "success");
     }
     
-    // Build the clinical environment based on approach
-    if (approach === 'DBT') {
-        EXERCISE_CATEGORIES = window.ALL_CATEGORIES.filter(c => c.id !== 'schema_therapy');
-        EXERCISES = window.ALL_EXERCISES.filter(e => e.category !== 'schema_therapy');
-        
-        if (window.ALL_SCALES && window.simulationData) {
-            window.simulationData.scales = {
-                DERS: window.ALL_SCALES.DERS,
-                CRISIS: window.ALL_SCALES.CRISIS
-            };
-        }
-        
-        let titleSpan = document.getElementById('tpl-exercises').content.querySelector('#exercises-title-text');
-        if(titleSpan) titleSpan.textContent = "Exercices — TCD (DBT)";
-        
-    } else if (approach === 'SCHEMA') {
-        EXERCISE_CATEGORIES = window.ALL_CATEGORIES.filter(c => c.id === 'schema_therapy');
-        EXERCISES = window.ALL_EXERCISES.filter(e => e.category === 'schema_therapy');
-        
-        if (window.ALL_SCALES && window.simulationData) {
-            window.simulationData.scales = {
-                YSQ: window.ALL_SCALES.YSQ,
-                YPI: window.ALL_SCALES.YPI,
-                COMPENSATION: window.ALL_SCALES.COMPENSATION,
-                BDI: window.ALL_SCALES.BDI,
-                BAI: window.ALL_SCALES.BAI
-            };
-        }
-
-        let titleSpan = document.getElementById('tpl-exercises').content.querySelector('#exercises-title-text');
-        if(titleSpan) titleSpan.textContent = "Exercices — Régulation des Schémas";
-    }
-
-    // Switch dynamic protocol based on modality
-    if (approach === 'DBT' && modality === 'Groupe') {
-        window.currentTroubleId = 'TPL_GROUP';
-    } else if (approach === 'SCHEMA' && modality === 'Individuel') {
-        window.currentTroubleId = 'SCHEMA_INDIVIDUEL';
-    } else if (approach === 'SCHEMA' && modality === 'Groupe') {
-        window.currentTroubleId = 'SCHEMA_GROUP';
-    } else {
-        window.currentTroubleId = 'TPL';
-    }
-    
-    // Update the master PROTOCOL pointer so app.js uses the right schema
     if (window.PROTOCOLS_DB && window.PROTOCOLS_DB[window.currentTroubleId]) {
         window.PROTOCOL = window.PROTOCOLS_DB[window.currentTroubleId];
     }
     
-    // Transition
     document.getElementById('level-1-view').style.display = 'none';
     const appView = document.getElementById('app-view');
     appView.style.display = 'block';
     appView.style.animation = 'fadeIn 0.3s ease';
 
-    // Rendre le dossier actif si app est déjà initialisé
     if (window.app && app.state && app.state.selectedPatient) {
-        // Force fully reloading the patient data with the new PROTOCOL context (16 vs 55 sessions)
         app.selectPatient(app.state.selectedPatient.id);
     }
 }
@@ -230,13 +180,11 @@ function launchDashboard(approach, modality) {
 <!-- DOSSIER PATIENT -->
 <template id="tpl-dossier">
 <div>
-
-
     <!-- Progression des séances -->
     <div class="panel-card mb-3">
         <div class="panel-card-header">
-            <h6><i class="fas fa-list-check me-2 text-primary-c"></i>Progression des séances</h6>
-            <span id="dossier-progress-badge" class="badge" style="background:var(--primary);color:white;font-size:0.7rem;padding:4px 10px;border-radius:20px;"></span>
+            <h6><i class="fas fa-list-check me-2 text-primary-c"></i>Progression du Suivi</h6>
+            <span id="dossier-progress-badge" class="badge" style="background:var(--tlu-orange);color:white;font-size:0.7rem;padding:4px 10px;border-radius:20px;"></span>
         </div>
         <div class="panel-card-body" style="max-height:600px;overflow-y:auto;">
             <div class="session-timeline" id="dossier-session-timeline"></div>
@@ -248,12 +196,12 @@ function launchDashboard(approach, modality) {
 <!-- EXERCICES -->
 <template id="tpl-exercises">
 <div>
-    <div class="section-title"><i class="fas fa-clipboard-list text-primary-c"></i> <span id="exercises-title-text">Outils Cliniques</span></div>
+    <div class="section-title"><i class="fas fa-clipboard-list text-primary-c"></i> <span id="exercises-title-text">Outils Cliniques (TCC Addictions)</span></div>
     <div class="row g-3">
         <div class="col-md-4">
             <div class="panel-card" style="position:sticky;top:80px;">
                 <div class="panel-card-header">
-                    <h6><i class="fas fa-layer-group me-2 text-primary-c"></i>Catégories</h6>
+                    <h6><i class="fas fa-layer-group me-2 text-primary-c"></i>Domaines d'Intervention</h6>
                 </div>
                 <div class="panel-card-body p-0" id="exercise-category-list"></div>
             </div>
@@ -278,13 +226,13 @@ function launchDashboard(approach, modality) {
         </div>
         <div class="panel-card">
             <div class="panel-card-header">
-                <h6><i class="fas fa-clipboard-list me-2" style="color:var(--accent)"></i>Exercices disponibles</h6>
+                <h6><i class="fas fa-clipboard-list me-2" style="color:var(--tlu-orange)"></i>Outils pour la séance</h6>
             </div>
             <div class="panel-card-body" id="session-exercises-area"></div>
         </div>
         <div class="panel-card">
             <div class="panel-card-header">
-                <h6><i class="fas fa-stethoscope me-2 text-primary-c"></i>Échelles cliniques</h6>
+                <h6><i class="fas fa-stethoscope me-2 text-primary-c"></i>Évaluations (BAM/Audit)</h6>
             </div>
             <div class="panel-card-body" id="session-scales-area"></div>
         </div>
@@ -299,11 +247,11 @@ function launchDashboard(approach, modality) {
         <div id="session-exercise-render-area"></div>
         <div class="panel-card mt-3">
             <div class="panel-card-header">
-                <h6><i class="fas fa-pen-to-square me-2" style="color:var(--accent)"></i>Notes cliniques</h6>
+                <h6><i class="fas fa-pen-to-square me-2" style="color:var(--tlu-orange)"></i>Notes d'évolution / Entretien Motivationnel</h6>
                 <button class="btn-sm-icon" onclick="app.saveNotes()" title="Sauvegarder"><i class="fas fa-save"></i></button>
             </div>
             <div class="panel-card-body">
-                <textarea class="notes-textarea" id="clinical-notes" placeholder="Observations cliniques, attitude du patient, éléments marquants de la séance…"></textarea>
+                <textarea class="notes-textarea" id="clinical-notes" placeholder="Stade de changement du patient (Prochaska), observations sur la balance décisionnelle, contenu de l'analyse fonctionnelle..."></textarea>
             </div>
         </div>
         <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
@@ -321,13 +269,16 @@ function launchDashboard(approach, modality) {
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="static/data.js?v=2.0.8-tpl"></script>
-<script src="static/protocols.js?v=2.0.12-tpl"></script>
-<script src="../TAG/static/storage.js?v=2.0.6-tpl"></script>
-<script src="static/exercises_config.js?v=2.0.11-tpl"></script>
-<script src="../TAG/static/exercises.js?v=2.0.5-tpl"></script>
+<!-- TLU Specific Data -->
+<script src="static/data.js?v=TLU.1.0"></script>
+<script src="static/protocols.js?v=TLU.1.0"></script>
+<script src="static/exercises_config.js?v=TLU.1.0"></script>
+
+<!-- Shared Engine Scripts -->
+<script src="../TAG/static/storage.js?v=2.2.0"></script>
+<script src="../TAG/static/exercises.js?v=2.2.0"></script>
 <script>
-  window.currentTroubleId = "TPL";
+  window.currentTroubleId = "TLU_INDIVIDUEL"; // Default
   document.getElementById("footerYear").textContent = new Date().getFullYear();
 </script>
 <script src="../TAG/static/app.js?v=2.3.0"></script>

@@ -77,7 +77,7 @@ const EXERCISES = [
         type: 'daily_log',
         defaultSessions: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         resourcePdf: 'Resources/Fiches_travail/priseconscienceanxiete.pdf',
-        description: "Notez vos inquiétudes trois fois par jour, avec le niveau d'anxiété et le type d'inquiétude.",
+        description: "Demander au patient de noter ses inquiétudes trois fois par jour, avec le niveau d'anxiété et le type d'inquiétude.",
         columns: [
             { key: 'date', label: 'Date', inputType: 'date', width: '120px' },
             { key: 'heure', label: 'Heure', inputType: 'time', width: '100px' },
@@ -85,6 +85,26 @@ const EXERCISES = [
             { key: 'niveau', label: 'Anxiété (0-8)', inputType: 'number', min: 0, max: 8, width: '90px' },
             { key: 'type', label: 'Type', inputType: 'select', options: ['Problème réel', 'Problème éventuel'], width: '140px' }
         ]
+    },
+    {
+        id: 'tcc_guide_prise_conscience', ref: 'TAG-G02',
+        title: 'Guide d\'animation : Prise de conscience',
+        category: 'psychoeducation', type: 'info',
+        description: "Instruction sur l\'introduction du carnet d\'auto-enregistrement pour discriminer les deux types d\'inquiétudes.",
+        defaultSessions: [2],
+        content: `
+<div class="exercise-info-content">
+    <h5><i class="fas fa-eye me-2" style="color:#06b6d4"></i>Phase 2 : Prise de conscience (Auto-observation)</h5>
+    <p>La première étape essentielle du traitement est d\'aider le patient à prendre conscience de la fréquence, de l\'intensité et du contexte précis de ses inquiétudes au quotidien.</p>
+    <h6>Objectifs Cliniques :</h6>
+    <ul>
+        <li><strong>Discrimination :</strong> Aider le patient à observer quelles inquiétudes relèvent de problèmes réels (actuels) et lesquelles relèvent de problèmes éventuels (futurs incertains).</li>
+        <li><strong>Mise à distance :</strong> Le simple fait de noter l\'inquiétude crée une première distance cognitive. L\'inquiétude devient un objet d\'étude extérieur.</li>
+    </ul>
+    <h6>Utilisation du Carnet :</h6>
+    <p>Présenter au patient le Carnet d\'auto-enregistrement. Lui demander de s\'arrêter au minimum trois fois par jour pour observer et classer ses inquiétudes. Préciser que cet exercice peut temporairement augmenter la vigilance anxieuse au début, ce qui est normal.</p>
+</div>
+        `
     },
 
     // ===================== UTILITÉ DES INQUIÉTUDES =====================
@@ -97,7 +117,7 @@ const EXERCISES = [
         description: "Exploration des croyances entretenues au sujet des inquiétudes.",
         content: `
             <h5>À quoi ça sert de s'inquiéter autant ?</h5>
-            <p>Si vous vous inquiétez depuis un certain temps, c'est peut-être parce que vous y voyez un certain avantage. Il serait utile de se questionner sur l'utilité potentielle des inquiétudes.</p>
+            <p>Si le patient s'inquiète depuis un certain temps, c'est peut-être parce qu'il y voit un certain avantage. Il serait utile de le questionner sur l'utilité potentielle des inquiétudes.</p>
             <h5>Types de croyances face aux inquiétudes</h5>
             <ol type="a">
                 <li><strong>Résolution de problèmes</strong> — S'inquiéter aide à régler les problèmes, trouver de meilleures solutions, être plus vigilant.</li>
@@ -133,9 +153,9 @@ const EXERCISES = [
         type: 'two_columns',
         defaultSessions: [3],
         resourcePdf: 'Resources/Fiches_travail/avantagesdesavantagesinquietudes.pdf',
-        description: "Lister les avantages (utilité) et les désavantages (inconvénients) de s'inquiéter.",
-        columnA: { label: 'Avantages (utilité)', placeholder: "En quoi s'inquiéter m'est utile…" },
-        columnB: { label: 'Désavantages (inconvénients)', placeholder: "En quoi s'inquiéter me nuit…" }
+        description: "Faire lister au patient les avantages (utilité) et les désavantages (inconvénients) de s'inquiéter.",
+        columnA: { label: 'Avantages (utilité)', placeholder: "En quoi s'inquiéter est utile au patient…" },
+        columnB: { label: 'Désavantages (inconvénients)', placeholder: "En quoi s'inquiéter nuit au patient…" }
     },
     {
         id: 'ex_7_9_7', ref: '7.9.7',
@@ -143,13 +163,13 @@ const EXERCISES = [
         category: 'utilite',
         type: 'structured_form',
         defaultSessions: [3],
-        description: "Remise en question d'une croyance face aux inquiétudes. Identifiez une croyance cible et répondez aux questions.",
+        description: "Remise en question d'une croyance face aux inquiétudes. Aider le patient à identifier une croyance cible et à répondre aux questions.",
         fields: [
-            { key: 'croyance', label: 'Description de la croyance', type: 'textarea', placeholder: "La croyance que je veux examiner est…", rows: 2 },
-            { key: 'preuves_pour', label: '1. Quelles sont vos preuves ou arguments pour dire que cette croyance est vraie ?', type: 'textarea', rows: 3 },
-            { key: 'preuves_contre', label: '2. Si vous aviez à démontrer que cette croyance n\'est pas vraie, quels seraient vos arguments ?', type: 'textarea', rows: 3 },
-            { key: 'avantages', label: '3. Quels sont les avantages que cette croyance vous apporte ?', type: 'textarea', rows: 3 },
-            { key: 'desavantages', label: '4. Quels sont les désavantages que cette croyance vous apporte ?', type: 'textarea', rows: 3 }
+            { key: 'croyance', label: 'Description de la croyance', type: 'textarea', placeholder: "La croyance que le patient veut examiner est…", rows: 2 },
+            { key: 'preuves_pour', label: '1. Quelles sont les preuves ou arguments du patient pour dire que cette croyance est vraie ?', type: 'textarea', rows: 3 },
+            { key: 'preuves_contre', label: '2. Si le patient devait démontrer que cette croyance n\'est pas vraie, quels seraient ses arguments ?', type: 'textarea', rows: 3 },
+            { key: 'avantages', label: '3. Quels sont les avantages que cette croyance apporte au patient ?', type: 'textarea', rows: 3 },
+            { key: 'desavantages', label: '4. Quels sont les désavantages que cette croyance apporte au patient ?', type: 'textarea', rows: 3 }
         ],
         repeatable: true
     },
@@ -216,7 +236,7 @@ const EXERCISES = [
         type: 'checklist_examples',
         defaultSessions: [4],
         resourcePdf: 'Resources/Fiches_travail/manifestationsintoleranceincertitude.pdf',
-        description: "Identifiez vos manifestations personnelles d'intolérance à l'incertitude.",
+        description: "Aider le patient à identifier ses manifestations personnelles d'intolérance à l'incertitude.",
         items: [
             { label: 'Éviter de faire certaines choses', example: "Ex. Éviter d'aborder un sujet délicat avec un ami car on n'est pas certain de sa réaction." },
             { label: 'Trouver des obstacles artificiels pour ne pas faire certaines choses', example: "Ex. Refuser un nouveau projet prétextant qu'on veut passer du temps avec les enfants." },
@@ -238,12 +258,12 @@ const EXERCISES = [
         category: 'intolerance',
         type: 'structured_form',
         defaultSessions: [4, 5, 6],
-        description: "Décrivez une action choisie pour augmenter votre tolérance à l'incertitude.",
+        description: "Faire décrire au patient une action choisie pour augmenter sa tolérance à l'incertitude.",
         fields: [
-            { key: 'action', label: "Description de l'action choisie", type: 'textarea', placeholder: "L'action que j'ai choisie pour affronter l'incertitude est…", rows: 3 },
-            { key: 'inconfort', label: "Inconfort ressenti pendant l'action", type: 'textarea', placeholder: "Pendant que je faisais cette action, j'ai ressenti…", rows: 3 },
-            { key: 'pensees', label: "Pensées présentes pendant l'action", type: 'textarea', placeholder: "Les pensées qui me traversaient l'esprit étaient…", rows: 3 },
-            { key: 'observations', label: "Observations après avoir fait l'action", type: 'textarea', placeholder: "Après avoir fait cette action, j'ai constaté que…", rows: 3 }
+            { key: 'action', label: "Description de l'action choisie", type: 'textarea', placeholder: "L'action que le patient a choisie pour affronter l'incertitude est…", rows: 3 },
+            { key: 'inconfort', label: "Inconfort ressenti pendant l'action", type: 'textarea', placeholder: "Pendant que le patient faisait cette action, il a ressenti…", rows: 3 },
+            { key: 'pensees', label: "Pensées présentes pendant l'action", type: 'textarea', placeholder: "Les pensées qui traversaient l'esprit du patient étaient…", rows: 3 },
+            { key: 'observations', label: "Observations après avoir fait l'action", type: 'textarea', placeholder: "Après avoir fait cette action, le patient a constaté que…", rows: 3 }
         ],
         repeatable: true
     },
@@ -291,12 +311,12 @@ const EXERCISES = [
         category: 'resolution',
         type: 'free_list',
         defaultSessions: [7],
-        description: "Identifiez les problèmes actuels ou récurrents dans différentes sphères de votre vie.",
-        helpText: "Les problèmes peuvent se présenter dans : relations avec vos proches, amis, travail, études, engagements, loisirs, tâches quotidiennes.",
+        description: "Aider le patient à identifier les problèmes actuels ou récurrents dans différentes sphères de sa vie.",
+        helpText: "Les problèmes peuvent se présenter dans : relations avec ses proches, amis, travail, études, engagements, loisirs, tâches quotidiennes.",
         examples: [
-            "J'ai un trop grand nombre de dossiers sous ma responsabilité.",
-            "Je n'ai aucun coussin financier pour faire face aux imprévus.",
-            "Je ne fais pas suffisamment d'activités physiques."
+            "Le patient a un trop grand nombre de dossiers sous sa responsabilité.",
+            "Le patient n'a aucun coussin financier pour faire face aux imprévus.",
+            "Le patient ne fait pas suffisamment d'activités physiques."
         ],
         placeholder: "Décrire un problème actuel ou récurrent…"
     },
@@ -306,7 +326,7 @@ const EXERCISES = [
         category: 'resolution',
         type: 'checklist',
         defaultSessions: [7],
-        description: "Identifiez vos principales réactions contreproductives face aux problèmes.",
+        description: "Aider le patient à identifier ses principales réactions contreproductives face aux problèmes.",
         items: [
             { label: "Les gens n'ont pas de problèmes. Si j'ai un problème, ça veut dire que je suis anormal(e).", tag: 'anormalité' },
             { label: "Je suis le(la) seul(e) à avoir les problèmes que j'ai.", tag: 'anormalité/injustice' },
@@ -331,18 +351,18 @@ const EXERCISES = [
         category: 'resolution',
         type: 'problem_solving',
         defaultSessions: [8, 9, 10],
-        description: "Appliquez la démarche structurée de résolution de problèmes à un problème concret.",
+        description: "Aider le patient à appliquer la démarche structurée de résolution de problèmes à un problème concret.",
         fields: [
             { key: 'definition', label: 'Définition du problème', type: 'textarea', placeholder: "Le problème est… (Qui ? Quoi ? Quand ?)", rows: 2 },
-            { key: 'objectif', label: "Formulation de l'objectif : Qu'est-ce que je peux faire pour…? Comment faire pour…?", type: 'textarea', placeholder: "Mon objectif est de…", rows: 2 },
-            { key: 'reaction', label: "Modification de la réaction : Est-ce que je réagis de façon contreproductive ? Y'aurait-il une autre façon de réagir ?", type: 'textarea', placeholder: "Ma réaction actuelle est… Une alternative serait…", rows: 2 }
+            { key: 'objectif', label: "Formulation de l'objectif : Qu'est-ce que le patient peut faire pour…? Comment faire pour…?", type: 'textarea', placeholder: "L'objectif du patient est de…", rows: 2 },
+            { key: 'reaction', label: "Modification de la réaction : Est-ce que le patient réagit de façon contreproductive ? Y'aurait-il une autre façon de réagir ?", type: 'textarea', placeholder: "La réaction actuelle du patient est… Une alternative serait…", rows: 2 }
         ],
         solutionSlots: 10,
         evaluationFields: [
             { key: 'solution_choisie', label: 'Solution(s) choisie(s)', type: 'textarea', rows: 2 },
-            { key: 'strategie', label: "Stratégie d'application : Comment je vais m'y prendre", type: 'textarea', rows: 2 },
+            { key: 'strategie', label: "Stratégie d'application : Comment le patient va s'y prendre", type: 'textarea', rows: 2 },
             { key: 'evaluation_probleme', label: "Évaluation : Est-ce que le problème est résolu ?", type: 'textarea', rows: 2 },
-            { key: 'evaluation_emotions', label: "Évaluation : Est-ce que j'éprouve un soulagement émotionnel ?", type: 'textarea', rows: 2 }
+            { key: 'evaluation_emotions', label: "Évaluation : Est-ce que le patient éprouve un soulagement émotionnel ?", type: 'textarea', rows: 2 }
         ],
         repeatable: true
     },
@@ -403,7 +423,7 @@ const EXERCISES = [
         category: 'exposition',
         type: 'structured_form',
         defaultSessions: [11, 12, 13],
-        description: "Rédigez un scénario d'exposition centré sur un seul thème de peur.",
+        description: "Faire rédiger au patient un scénario d'exposition centré sur un seul thème de peur.",
         helpText: "Le scénario doit être : au présent, au « je », en langage parlé, centré sur un seul thème, détaillé (5 sens), sans éléments rassurants, effrayant mais crédible. Durée de lecture : ~55 secondes.",
         fields: [
             { key: 'theme', label: 'Thème de la peur fondamentale', type: 'select', options: ['Santé (la mienne)', "Santé d'un proche", 'Finances / Travail', 'Relations / Famille', "Décisions / L'avenir", 'Autre'] },
@@ -425,7 +445,7 @@ const EXERCISES = [
             { key: 'heure_apres', label: 'Heure (après)', type: 'time' },
             { key: 'niveau_apres', label: "Niveau de malaise APRÈS l'exposition (0-8)", type: 'range', min: 0, max: 8 },
             { key: 'niveau_max', label: 'Niveau MAXIMAL de malaise pendant (0-8)', type: 'range', min: 0, max: 8 },
-            { key: 'neutralisation', label: "Avez-vous neutralisé pendant l'exposition ?", type: 'select', options: ['Non', 'Oui'] },
+            { key: 'neutralisation', label: "Le patient a-t-il neutralisé pendant l'exposition ?", type: 'select', options: ['Non', 'Oui'] },
             { key: 'neutralisation_comment', label: 'Si oui, comment ?', type: 'textarea', rows: 2, conditional: 'neutralisation:Oui' }
         ],
         repeatable: true
@@ -474,11 +494,11 @@ const EXERCISES = [
     },
     {
         id: 'ex_7_9_24', ref: '7.9.24',
-        title: 'Objectifs pour poursuivre votre évolution',
+        title: 'Objectifs pour poursuivre son évolution',
         category: 'rechute',
         type: 'goals_form',
         defaultSessions: [15],
-        description: "Identifiez les inquiétudes restantes et les moyens que vous utiliserez pour continuer à progresser.",
+        description: "Faire identifier au patient les inquiétudes restantes et les moyens qu'il utilisera pour continuer à progresser.",
         minGoals: 2,
         maxGoals: 5
     }
@@ -518,9 +538,11 @@ function getExerciseById(id) {
 const PROTOCOL_TOOL_MAP = {
     "Guide_Modele_TAG": ['ex_7_9_1', 'ex_7_9_2'],
     "Guide_Principes_TCC": ['ex_7_9_1b'],
+    "Guide_Prise_Conscience": ['tcc_guide_prise_conscience'],
     "Carnet_AutoEnregistrement_Inquietudes": ['ex_7_9_3'],
     "Avantages_Desavantages_Inquietudes": ['ex_7_9_6'],
-    "Exercice_Avocat_Du_Diable": ['ex_7_9_4', 'ex_7_9_7'],
+    "Guide_Utilite_Inquietudes": ['ex_7_9_4', 'ex_7_9_5'],
+    "Exercice_Avocat_Du_Diable": ['ex_7_9_7'],
     "Liste_12_Comportements": ['ex_7_9_10'],
     "Action_Comportementale_Incertitude": ['ex_7_9_11'],
     "Guide_Definir_Intolerance_Incertitude": ['ex_7_9_8', 'ex_7_9_9'],
